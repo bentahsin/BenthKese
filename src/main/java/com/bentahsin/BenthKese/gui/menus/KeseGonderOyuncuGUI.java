@@ -13,10 +13,9 @@ import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
+import com.bentahsin.BenthKese.utils.AnvilGUIHelper;
 import net.wesjd.anvilgui.AnvilGUI;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
@@ -40,30 +39,19 @@ public class KeseGonderOyuncuGUI {
     }
 
     public void open() {
-        Player player = playerMenuUtility.getOwner();
-        new AnvilGUI.Builder()
-                .onClose(stateSnapshot -> {}) // İsteğe bağlı: Kapatıldığında bir şey yap
-                .onClick((slot, stateSnapshot) -> {
-                    if (slot != AnvilGUI.Slot.OUTPUT) {
-                        return Collections.emptyList();
-                    }
-                    Player target = Bukkit.getPlayer(stateSnapshot.getText());
-                    if (target == null || !target.isOnline()) {
-                        return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(messageManager.getMessage("gui.anvil.player-not-found")));
-                    }
-                    if (target.equals(player)) {
-                        return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(messageManager.getMessage("gui.anvil.cant-send-self")));
-                    }
-                    // Oyuncu bulundu, şimdi miktar girmesi için ikinci AnvilGUI'yi aç
-                    playerMenuUtility.setTargetPlayerUUID(target.getUniqueId());
+        AnvilGUIHelper.createPlayerInput(
+                plugin,
+                playerMenuUtility.getOwner(),
+                messageManager,
+                messageManager.getMessage("gui.send-menu.player-title"),
+                new ItemStack(Material.NAME_TAG),
+                (targetPlayer) -> {
+                    // Oyuncu başarıyla bulundu, şimdi miktar GUI'sini aç
+                    playerMenuUtility.setTargetPlayerUUID(targetPlayer.getUniqueId());
                     return Collections.singletonList(AnvilGUI.ResponseAction.run(() ->
                             new KeseGonderMiktarGUI(plugin, playerMenuUtility, messageManager, storageService, limitManager, configManager).open()
                     ));
-                })
-                .text(messageManager.getMessage("gui.anvil.default-player-text"))
-                .itemLeft(new ItemStack(Material.NAME_TAG))
-                .title(messageManager.getMessage("gui.send-menu.player-title"))
-                .plugin(plugin)
-                .open(player);
+                }
+        );
     }
 }

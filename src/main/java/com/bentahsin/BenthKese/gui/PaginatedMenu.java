@@ -9,7 +9,6 @@ package com.bentahsin.BenthKese.gui;
 
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import org.bukkit.Material;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;

@@ -177,7 +177,7 @@ public class YamlStorageService implements IStorageService {
 
         FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
         List<Map<?, ?>> history = config.getMapList("transaction-history");
-        if (history == null || history.isEmpty()) {
+        if (history.isEmpty()) {
             return Collections.emptyList();
         }
 
