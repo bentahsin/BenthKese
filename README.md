@@ -122,7 +122,7 @@ limit-levels:
 
 ## 🤝 Destek ve Katkıda Bulunma
 
-Bir hata bulursanız veya bir özellik önermek isterseniz, lütfen bu projenin **[Issues](https://github.com/your-username/BenthKese/issues)** sekmesini kullanın. Katkıda bulunmak isterseniz, pull request'ler her zaman memnuniyetle karşılanır.
+Bir hata bulursanız veya bir özellik önermek isterseniz, lütfen bu projenin **[Issues](https://github.com/bentahsin/BenthKese/issues)** sekmesini kullanın. Katkıda bulunmak isterseniz, pull request'ler her zaman memnuniyetle karşılanır.
 
 ## 📜 Lisans
 
