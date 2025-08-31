@@ -1,0 +1,29 @@
+# BenthKese Limit Ayarları
+#
+# Her seviye için bir bölüm oluşturun. Bölüm adı seviyenin ID'si olmalıdır (1, 2, 3...).
+# name: Seviyenin adı (renk kodları destekler).
+# cost: Bir sonraki seviyeye geçiş ücreti. (İlk seviyenin maliyeti 0 olmalı).
+# send-limit: Günlük gönderme limiti.
+# receive-limit: Günlük alma limiti.
+
+limit-levels:
+  1:
+    name: "&7Başlangıç"
+    cost: 1000.0
+    send-limit: 5000.0
+    receive-limit: 10000.0
+  2:
+    name: "&aTüccar"
+    cost: 5000.0
+    send-limit: 25000.0
+    receive-limit: 50000.0
+  3:
+    name: "&6Zengin"
+    cost: 20000.0
+    send-limit: 100000.0
+    receive-limit: 250000.0
+  4:
+    name: "&dBaron"
+    cost: 0.0 # Son seviye, yükseltme maliyeti yok.
+    send-limit: -1.0 # -1 sonsuz limit anlamına gelir.
+    receive-limit: -1.0

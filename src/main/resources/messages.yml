@@ -1,0 +1,368 @@
+# BenthKese Eklentisi Mesaj Dosyası
+# Renk kodları için '&' kullanabilirsiniz.
+# Değişkenler için {degisken_adi} formatını kullanabilirsiniz.
+
+# ====================================================================
+# 1. Genel Mesajlar
+# Eklentinin genelinde kullanılan temel geri bildirimler.
+# ====================================================================
+no-permission: "&cBu komutu kullanmak için yetkiniz yok."
+invalid-command-usage: "&cGeçersiz komut kullanımı. Yardım için /kese help yazın."
+invalid-amount: "&cGeçersiz miktar. Lütfen pozitif bir sayı girin."
+not-enough-items: "&cEnvanterinizde yeterli eşya bulunmuyor."
+not-enough-money: "&cKesenizde yeterli para bulunmuyor."
+
+# ====================================================================
+# 2. Oyuncu Komut Mesajları
+# Oyuncuların kullandığı ana komutlara ait metinler.
+# ====================================================================
+help-command:
+  - "&e&m----------------------------------------------------"
+  - "&6BenthKese Yardım Menüsü"
+  - ""
+  - "&e/kese koy <miktar|el|envanter> &7- Altınlarınızı keseye koyarsınız."
+  - "&e/kese al <miktar> &7- Kesenizden altın çekersiniz."
+  - "&e/kese gonder <oyuncu> <miktar> &7- Başka bir oyuncuya para gönderirsiniz."
+  - "&e/kese limit &7- Limit bilgilerinizi görüntülersiniz."
+  - "&e/kese faiz &7- Vadeli faiz sistemini açarsınız."
+  - "&e/kese &7- Grafiksel menüyü açarsınız."
+  - "&e&m----------------------------------------------------"
+
+deposit-success: "&aBaşarıyla &e{miktar} &aadet &e{birim} &ayatırdın. &c(-{vergi} Vergi)&7. Kesene &e{net_miktar} ⛁ &ageçti."
+withdraw-success: "&aBaşarıyla &e{miktar} &aadet &e{birim} &akeseden alındı. &c({vergi} Vergi)&7. Toplam maliyet: &e{toplam_maliyet} ⛁"
+
+balance:
+  self: "&eMevcut Bakiyen: &a{bakiye} ⛁"
+  other: "&e{oyuncu} &aadlı oyuncunun bakiyesi: &e{bakiye} ⛁"
+
+deposit:
+  not-holding-economy-item: "&cElinde keseye koyulacak bir eşya tutmuyorsun."
+  inventory-success: "&aEnvanterindeki &e{miktar} &aadet &e{birim} &abaşarıyla keseye eklendi."
+  no-economy-item-in-inventory: "&cEnvanterinde keseye koyulacak hiç eşya bulunmuyor."
+
+withdraw:
+  inventory-full: "&cEnvanterin tamamen dolu! Hiç eşya alamazsın."
+  partial-success: "&eEnvanterin dolduğu için istedigin &c{istenen} &eyerine &a{verilen} &eadet &e{birim} &everildi."
+
+send-money:
+  player-not-found: "&c'{oyuncu}' adlı oyuncu bulunamadı."
+  cannot-send-to-self: "&cKendine para gönderemezsin."
+  limit-exceeded: "&cGünlük gönderme limitini aştın! Bu işlemle limitini {asacak_miktar} kadar aşacaksın."
+  receiver-limit-exceeded: "&c{oyuncu} adlı oyuncu günlük alma limitine ulaştı."
+  success-sender: "&aBaşarıyla &e{oyuncu} &aadlı oyuncuya &e{miktar} ⛁ &agönderdin. &c(-{vergi} Vergi)&7. Toplam maliyet: &e{toplam_maliyet} ⛁"
+  success-receiver: "&e{gonderen} &aadlı oyuncu sana &e{miktar} &apara gönderdi."
+
+# ====================================================================
+# 3. Limit Sistemi Mesajları
+# /kese limit, gor, yükselt gibi komutların metinleri.
+# ====================================================================
+limit-info:
+  header:
+    - "&e&m----------------------------------------------------"
+    - "                   &6BenthKese Limit Seviyeleri"
+    - ""
+  entry-format: "&eSeviye: {seviye_adi} &7| &eMaliyet: &c{maliyet} &7| &eGönderme/Alma: &a{gonderme_limiti}&7/&a{alma_limiti}"
+  infinite-text: "Sınırsız"
+  max-level-text: "&6Maksimum Seviye"
+  footer:
+    - ""
+    - "&7Limitini yükseltmek için &e/kese yükselt &7komutunu kullan."
+    - "&e&m----------------------------------------------------"
+
+limit-status:
+  resetted: "&aGünlük limitlerin sıfırlandı!"
+  info:
+    - "&e&m----------------------------------------------------"
+    - "                   &6Limit Durumun"
+    - ""
+    - "&eMevcut Seviyen: {seviye_adi}"
+    - "&eGünlük Gönderme: &c{gonderme_kullanilan} &7/ &a{gonderme_max}"
+    - "&eGünlük Alma: &c{alma_kullanilan} &7/ &a{alma_max}"
+    - ""
+    - "&e&m----------------------------------------------------"
+
+level-up:
+  max-level-reached: "&cZaten en yüksek limit seviyesine ulaşmışsın."
+  not-enough-money: "&cYetersiz bakiye! Seviye atlamak için &e{gereken} &cparaya ihtiyacın var. Mevcut bakiyen: &e{mevcut}"
+  success: "&aTebrikler! Limit seviyen başarıyla {yeni_seviye} &aseviyesine yükseltildi."
+  error: "&cSeviye yükseltilirken bir hata oluştu: {hata}"
+
+# ====================================================================
+# 4. Yönetici Komut Mesajları (Admin)
+# /keseadmin veya /bka komutlarının metinleri.
+# ====================================================================
+admin:
+  invalid-usage: "&cGeçersiz komut. Kullanım: /bka <reload|limit|bakiye>"
+  reload:
+    success: "&aBenthKese konfigürasyon dosyaları başarıyla yeniden yüklendi."
+  bakiye:
+    usage: "&cKullanım: /bka bakiye <ekle|cikar|ayarla> <oyuncu> <miktar>"
+    ekle-success: "&a{oyuncu} &aadlı oyuncunun bakiyesine &e{miktar} &aeklendi."
+    cikar-success: "&a{oyuncu} &aadlı oyuncunun bakiyesinden &e{miktar} &açıkarıldı."
+    ayarla-success: "&a{oyuncu} &aadlı oyuncunun bakiyesi &e{miktar} &aolarak ayarlandı."
+  limit:
+    usage: "&cKullanım: /bka limit set <oyuncu> <seviye>"
+    level-not-exist: "&c'{seviye}' geçerli bir seviye değil. Lütfen limits.yml dosyasını kontrol edin."
+    set-success: "&a{oyuncu} &aadlı oyuncunun limit seviyesi &e{seviye} &aolarak ayarlandı."
+
+# ====================================================================
+# 7. Faiz Sistemi Mesajları
+# ====================================================================
+interest:
+  help:
+    - "&e&m----------------------------------------------------"
+    - "&6BenthKese Faiz Sistemi Yardım"
+    - ""
+    - "&e/kese faiz &7- Faiz sistemi ana menüsünü açar."
+    - "&e/kese faiz liste &7- Vadeli hesaplarını listeler."
+    - "&e/kese faiz koy <miktar> <süre> &7- Yeni bir vadeli hesap açar."
+    - "&e/kese faiz help &7- Bu yardım menüsünü gösterir."
+    - "&e&m----------------------------------------------------"
+  usage-koy: "&cKullanım: /kese faiz koy <miktar> <süre>"
+  create-success: "&aBaşarıyla {sure} vade ile {miktar} ⛁ faize yatırdın. Vade sonu kazancın: {kazanc} ⛁."
+  break-success: "&e{id} ID'li hesabını erken bozdun. Anaparan olan {miktar} ⛁ kesene iade edildi."
+  claim-success: "&bTebrikler! {id} ID'li hesabından faiziyle birlikte toplam {toplam_miktar} ⛁ çektin!"
+  error-disabled: "&cFaiz sistemi şu anda devre dışı."
+  error-max-accounts: "&cMaksimum vadeli hesap sayısına ({max}) ulaştın."
+  error-invalid-duration: "&cGeçersiz süre formatı! (Örn: 7d, 12h, 30m)"
+  error-no-rate-found: "&cBu süre için geçerli bir faiz oranı bulunamadı."
+  error-account-not-found: "&c{id} ID'li bir vadeli hesabın bulunamadı."
+  error-amount-range: "&cYatırabileceğin miktar {min} ile {max} ⛁ arasında olmalıdır."
+
+# ====================================================================
+# 5. Grafiksel Arayüz (GUI) Mesajları
+# Tüm menülerin metinleri burada toplanmıştır.
+# ====================================================================
+gui:
+  general:
+    back-button: "&c« Geri"
+  confirmation:
+    title: "&8İşlemi Onayla"
+    confirm-button:
+      name: "&a&lONAYLA"
+      lore:
+        - "&7Bu işlemi yapmak için tıkla."
+    cancel-button:
+      name: "&c&lİPTAL ET"
+      lore:
+        - "&7Önceki menüye dönmek için tıkla."
+  anvil:
+    player-not-found: "Oyuncu bulunamadı"
+    cant-send-self: "Kendine gönderemezsin"
+    invalid-amount: "Geçersiz miktar"
+    not-a-number: "Sayı girmelisin"
+    default-player-text: "Oyuncu Adı"
+    default-amount-text: "Miktar"
+  main-menu:
+    title: "&8BenthKese Ana Menü"
+    deposit:
+      name: "&a&lPara Yatır"
+      lore:
+        - "&7Envanterindeki altınları"
+        - "&7keseye yatırmak için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+    withdraw:
+      name: "&b&lPara Çek"
+      lore:
+        - "&7Kesendeki parayı fiziksel"
+        - "&7altına çevirmek için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+    send:
+      name: "&d&lPara Gönder"
+      lore:
+        - "&7Başka bir oyuncuya"
+        - "&7para göndermek için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+    limit:
+      name: "&6&lLimit Bilgileri"
+      lore:
+        - "&7Günlük limitlerini ve seviyeni"
+        - "&7görüntülemek için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+    interest:
+      name: "&6&lVadeli Faiz"
+      lore:
+        - "&7Paranı belirli bir süre"
+        - "&7kilitleyerek faiz kazan."
+        - ""
+        - "&e» Tıkla ve hesaplarını yönet!"
+    balance:
+      name: "&eMevcut Bakiyen: &a{bakiye} ⛁"
+      lore:
+        - "&7Bu sadece bir bilgi ekranıdır."
+  deposit-menu:
+    title: "&8Para Yatırma Menüsü"
+    anvil-title: "&8Ne kadar yatıracaksın?"
+    anvil:
+      name: "&eMiktar Gir"
+      lore:
+        - "&7Yatırmak istediğin miktarı"
+        - "&7kendin belirlemek için tıkla."
+    hand:
+      name: "&eElindekileri Yatır"
+      lore:
+        - "&7Elinde tuttuğun tüm altınları"
+        - "&7keseye yatırmak için tıkla."
+    inventory:
+      name: "&eEnvanteri Yatır"
+      lore:
+        - "&7Envanterindeki tüm altınları"
+        - "&7keseye yatırmak için tıkla."
+    quick-deposit:
+      name: "&aHızlı Yatır: &e{miktar}"
+      lore:
+        - "&7Envanterinden hızlıca"
+        - "&e{miktar} &7altın yatır."
+  withdraw-menu:
+    title: "&8Para Çekme Menüsü"
+    anvil-title: "&8Ne kadar çekeceksin?"
+    anvil:
+      name: "&eMiktar Gir"
+      lore:
+        - "&7Çekmek istediğin miktarı"
+        - "&7kendin belirlemek için tıkla."
+    quick-withdraw:
+      name: "&aHızlı Çek: &e{miktar}"
+      lore:
+        - "&7Envanterine hızlıca"
+        - "&e{miktar} &7altın çek."
+  send-menu:
+    player-title: "&8Kime para göndereceksin?"
+    amount-title: "&8{oyuncu} > Gönderilecek Miktar"
+  limit-menu:
+    title: "&8Limit Bilgileri"
+    status:
+      name: "&6Mevcut Limit Durumun"
+      lore:
+        - "&7Seviyen: {seviye_adi}"
+        - "&7"
+        - "&7Günlük Gönderme Limiti:"
+        - "&e- Kullanılan: &c{kullanilan}"
+        - "&e- Kalan: &a{kalan}"
+        - "&e- Maksimum: &6{max}"
+    confirmation-item:
+      name: "&6Seviye Yükseltme Onayı"
+      lore:
+        - "&7Mevcut Seviye: {mevcut_seviye}"
+        - "&7Yeni Seviye: {yeni_seviye}"
+        - ""
+        - "&7Maliyet: &c{maliyet} ⛁"
+        - ""
+        - "&eBu işlemi onaylıyor musun?"
+    upgrade:
+      name: "&a&lSeviye Yükselt"
+      lore:
+        - "&7Bir sonraki seviyeye geç:"
+        - "{yeni_seviye}"
+        - ""
+        - "&7Maliyet: &c{maliyet} ⛁"
+        - ""
+        - "&e» Yükseltmek için tıkla!"
+    upgrade-fail:
+      name: "&c&lSeviye Yükseltilemez"
+      lore:
+        - "&7Bir sonraki seviyeye geç:"
+        - "{yeni_seviye}"
+        - ""
+        - "&c&lYETERSİZ BAKİYE!"
+        - "&7Gereken: &c{maliyet} ⛁"
+        - "&7Mevcut: &e{bakiye} ⛁"
+    max-level:
+      name: "&cEn Yüksek Seviye"
+      lore:
+        - "&7Zaten ulaşabileceğin en"
+        - "&7yüksek limit seviyesindesin."
+  interest-main:
+    title: "&8Vadeli Faiz Sistemi"
+    anvil-amount-title: "&8Yatırılacak Miktar"
+    anvil-duration-title: "&8Vade Süresi (Örn: 7d, 12h)"
+    list-accounts:
+      name: "&a&lHesaplarımı Görüntüle"
+      lore:
+        - "&7Mevcut vadeli mevduat"
+        - "&7hesaplarını görmek için tıkla."
+    create-account:
+      name: "&b&lYeni Hesap Oluştur"
+      lore:
+        - "&7Paranı belirli bir süre"
+        - "&7faize yatırmak için tıkla."
+  interest-list:
+    title: "&8Vadeli Hesapların"
+    item-active:
+      name: "&eHesap ID: &6{id} &7(Aktif)"
+      lore:
+        - "&7Anapara: &a{anapara} ⛁"
+        - ""
+        - "&7Kalan Süre: &d{kalan_sure}"
+        - ""
+        - "&e» Detayları görmek için tıkla!"
+    item-mature:
+      name: "&bHesap ID: &3{id} &a&l(Çekilebilir!)"
+      lore:
+        - "&7Anapara: &a{anapara} ⛁"
+        - "&7Vade Sonu Kazanç: &b{kazanc} ⛁"
+        - ""
+        - "&a» Paranı çekmek için tıkla!"
+  interest-details:
+    title: "&8Hesap Detayları &7(ID: {id})"
+    info-item:
+      name: "&6Hesap Bilgileri"
+      lore:
+        - "&eAnapara: &a{anapara} ⛁"
+        - "&eFaiz Oranı: &a%{oran}"
+        - "&eToplam Kazanç: &b{kazanc} ⛁"
+        - ""
+        - "&eBaşlangıç Tarihi: &7{baslangic}"
+        - "&eVade Sonu Tarihi: &7{bitis}"
+        - "&eKalan Süre: &d{kalan_sure}"
+    claim-button:
+      name: "&a&lParayı Çek"
+      lore:
+        - "&7Vadesi dolan hesabındaki"
+        - "&7anapara ve faizi kesene"
+        - "&7aktarmak için tıkla."
+    break-button:
+      name: "&c&lHesabı Boz"
+      lore:
+        - "&7Vadesi henüz dolmamış bu"
+        - "&7hesabı bozacaksın. Sadece"
+        - "&7anaparanı geri alırsın."
+    break-confirmation-item:
+      name: "&cHesap Bozma Onayı"
+      lore:
+        - "&7Hesap ID: &e{id}"
+        - "&7Bu hesabı vadesi dolmadan"
+        - "&7bozmak üzeresiniz."
+        - ""
+        - "&7Geri Alınacak Tutar: &a{anapara} ⛁"
+        - "&c(Faiz kazancı iptal edilecek!)"
+        - ""
+        - "&eEmin misiniz?"
+  history-menu:
+    title: "&8İşlem Geçmişi"
+    main-menu-button:
+      name: "&e&lİşlem Geçmişi"
+      lore:
+        - "&7Son finansal hareketlerini"
+        - "&7görüntülemek için tıkla."
+    format:
+      send: "&c- {miktar} ⛁ &7> &e{hedef}"
+      receive: "&a+ {miktar} ⛁ &7< &e{gonderen}"
+      deposit: "&a+ {miktar} &7adet &e{birim}"
+      withdraw: "&c- {miktar} &7adet &e{birim}"
+      level-up: "&c- {maliyet} ⛁ &7(Seviye: {seviye})"
+      lore: "&7Tarih: &d{tarih}"
+
+# ====================================================================
+# 6. Placeholder API ve Diğer Metinler
+# Diğer eklentilerle entegrasyon için kullanılan metinler.
+# ====================================================================
+general:
+  yes: "&aEvet"
+  no: "&cHayır"
+  player-not-found: "&cOyuncu Bulunamadı"
+  invalid-level: "&cGeçersiz Seviye"

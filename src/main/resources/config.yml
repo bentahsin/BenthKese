@@ -1,0 +1,62 @@
+# BenthKese Ana Ayarlar
+
+# Veri Depolama Ayarları
+# Kullanılabilir tipler: YAML, SQLITE, MYSQL
+storage:
+  type: SQLITE # Varsayılan olarak SQLite kullansın
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "benthkese"
+    username: "root"
+    password: "password"
+
+# Ekonomi için kullanılacak materyal.
+# Bukkit materyal isimlerini kullanın: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+economy-item: GOLD_INGOT
+
+# Vergi Sistemi Ayarları
+# Bu bölümde, belirli işlemlere uygulanacak yüzde tabanlı vergileri ayarlayabilirsiniz.
+# Örneğin, 0.05 değeri %5'lik bir vergiye karşılık gelir.
+# Bir işlemi vergisiz yapmak için oranı 0.0 olarak ayarlayın.
+taxes:
+  deposit:
+    enabled: true
+    rate: 0.01 # %1 vergi. Oyuncu 100 altın yatırırsa, 99'u kesesine geçer.
+  withdraw:
+    enabled: true
+    rate: 0.02 # %2 vergi. Oyuncu 100 para çekerse, 102 parası gider, eline 100 altın alır.
+  send:
+    enabled: true
+    rate: 0.05 # %5 vergi. Oyuncu 100 gönderirse, hesabından 105 çekilir, karşıya 100 gider.
+
+# ====================================================================
+# Vadeli Faiz Sistemi Ayarları
+# ====================================================================
+interest:
+  # Bu özelliği tamamen açar veya kapatır.
+  enabled: true
+
+  # Bir oyuncunun aynı anda sahip olabileceği maksimum aktif vadeli hesap sayısı.
+  max-accounts-per-player: 5
+
+  # Yatırılabilecek minimum ve maksimum para miktarı.
+  min-deposit: 1000.0
+  max-deposit: 1000000.0
+
+  # Süreye göre artan faiz oranları.
+  # "time" formatı: s (saniye), m (dakika), h (saat), d (gün). Örn: "7d", "12h", "30m".
+  # Listedeki sıralama önemlidir. Eklenti, yatırılan süreye uyan İLK oranı kullanır.
+  # Bu yüzden en kısa süreyi en üste yazın.
+  # "rate" yüzde tabanlıdır. 0.10 = %10 faiz demektir.
+  rates:
+    - time: "1d" # 1 gün ve üzeri için
+      rate: 0.05 # %5
+    - time: "3d" # 3 gün ve üzeri için
+      rate: 0.08 # %8
+    - time: "7d" # 7 gün ve üzeri için
+      rate: 0.12 # %12
+    - time: "14d" # 14 gün ve üzeri için
+      rate: 0.20 # %20
+    - time: "30d" # 30 gün ve üzeri için
+      rate: 0.35 # %35
