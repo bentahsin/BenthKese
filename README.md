@@ -1,5 +1,5 @@
 # BenthKese
-[![Sürüm](https://img.shields.io/badge/Version-1.0.0-blue.svg)]()
+[![Sürüm](https://img.shields.io/badge/Version-1.0.1-blue.svg)]()
 
 [![Uyumlu Sürümler](https://img.shields.io/badge/Spigot/Paper-1.13.x%20--%201.21.x-orange.svg)](https://www.spigotmc.org/)
 [![Gereklilik](https://img.shields.io/badge/Dependency-Vault-blue)](https://www.spigotmc.org/resources/vault.34315/)
@@ -20,6 +20,9 @@ Kullanıcı dostu menüleri, güçlü yönetici araçları, şeffaf işlem geçm
 *   **Akıllı Para Çekme:** Para çekerken envanteriniz doluysa, eklenti alabileceğiniz maksimum miktarı verir ve sizi bilgilendirir.
 *   **İşlem Geçmişi:** Oyuncular, GUI üzerinden son 50 finansal işlemini (para gönderme, alma, limit yükseltme vb.) şeffaf bir şekilde takip edebilir.
 *   **Güvenli İşlemler:** Yüksek maliyetli işlemlerden (limit yükseltme, hesabı bozma) önce bir onay menüsü sunarak yanlışlıkla yapılan tıklamaları engeller.
+*   **Anlık Geri Bildirim ve Dinamik Arayüz:**
+      * Para transferi sonrasında oyunculara **Action Bar** üzerinden güncel limit durumları hakkında anlık bilgi verilir.
+      * Vadeli faiz menüsündeki hesapların kalan süresi, menü açıkken saniye saniye dinamik olarak güncellenir, böylece oyuncular menüyü yenilemeden yatırımlarını takip edebilir.
 
 ### 🏦 Gelişmiş Sistemler
 *   **Seviye Bazlı Limit Sistemi:**
@@ -40,19 +43,22 @@ Kullanıcı dostu menüleri, güçlü yönetici araçları, şeffaf işlem geçm
 *   **Esnek Veri Depolama:**
     *   Sunucu ihtiyaçlarına göre **YAML**, **SQLite** (varsayılan) veya **MySQL** depolama türlerinden birini seçin. MySQL, yüksek performanslı `HikariCP` bağlantı havuzu ile desteklenir.
 *   **Tamamen Özelleştirilebilir:** `messages.yml` dosyası sayesinde eklentideki her bir metni, renk kodları ve değişkenlerle birlikte sunucunuzun konseptine göre düzenleyin.
+*   **Tamamen Kişiselleştirilebilir Arayüz (`menus.yml`):**
+    * `messages.yml` ve `limits.yml`'ye ek olarak, artık `menus.yml` dosyası sayesinde eklentideki **tüm menülerin** görünümünü ve düzenini tamamen kontrol edebilirsiniz.
+    * Menülerin boyutunu, başlıklarını, butonların materyalini, slot konumunu, ismini ve açıklama metinlerini sunucunuzun temasına uygun şekilde kodlama yapmadan düzenleyin.
 
 ### 🌐 Entegrasyonlar
 *   **Vault (Zorunlu):** Sunucunuzdaki herhangi bir ekonomi eklentisiyle sorunsuz çalışır.
 *   **PlaceHolderAPI (İsteğe Bağlı):** Skor tabloları, sohbet formatları ve diğer eklentilerle entegre etmek için kapsamlı placeholder desteği.
-*   **AnvilGUI:** Oyuncudan miktar veya isim gibi girdileri almak için modern ve kullanıcı dostu arayüzler kullanır.
+*   **AnvilGUI (Gömülü):** Oyuncudan miktar veya isim gibi girdileri almak için modern ve kullanıcı dostu arayüzler kullanır.
 
 ## 📦 Kurulum
 
-1.  Eklentinin son sürümünü (`BenthKese-X.X.X.jar`) indirin.
+1.  Eklentinin son sürümünü [(`BenthKese-1.0.1.jar`)](https://github.com/bentahsin/benthkese/releases) indirin.
 2.  Sunucunuzda **[Vault](https://www.spigotmc.org/resources/vault.34315/)** eklentisinin kurulu olduğundan emin olun.
 3.  (İsteğe Bağlı) **[PlaceHolderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)** eklentisini kurun.
 4.  İndirdiğiniz `.jar` dosyasını sunucunuzun `plugins/` klasörüne atın.
-5.  Sunucuyu başlatın. Eklenti, `plugins/BenthKese/` klasörü içinde `config.yml`, `messages.yml` ve `limits.yml` dosyalarını oluşturacaktır.
+5.  Sunucuyu başlatın. Eklenti, `plugins/BenthKese/` klasörü içinde `config.yml`, `messages.yml`, `menus.yml` ve `limits.yml` dosyalarını oluşturacaktır.
 6.  Dosyaları kendi sunucunuza göre düzenleyin ve ayarları anında yenilemek için `/bka reload` komutunu kullanın.
 
 ## 🛠️ Komutlar ve Yetkiler
@@ -141,6 +147,7 @@ Eklenti, üç ana yapılandırma dosyası ile gelir:
 *   **`config.yml`:** Ana ayarlar. Depolama türü (`storage`), ekonomi materyali (`economy-item`), vergiler (`taxes`) ve faiz oranları (`interest`) buradan yönetilir.
 *   **`messages.yml`:** Eklentideki tüm metinler. Tamamen özelleştirilebilir.
 *   **`limits.yml`:** Eklentinin kalbi. Kendi limit seviyelerinizi, isimlerini, maliyetlerini ve limit değerlerini buradan oluşturun.
+*   **`menus.yml`:** Tüm eklenti içi menülerin görünümünü, düzenini ve metinlerini buradan yönetin.
 
 **Örnek `limits.yml` yapısı:**
 ```yaml
