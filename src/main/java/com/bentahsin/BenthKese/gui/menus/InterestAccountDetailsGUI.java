@@ -99,7 +99,6 @@ public class InterestAccountDetailsGUI extends Menu {
             MenuItemConfig claimConfig = menuManager.getMenuItem(MENU_KEY, "claim-button");
             actions.put(claimConfig.getSlot(), () -> {
                 interestService.processAccountAction(player, account.getAccountId());
-                // İşlem sonrası YENİDEN OLUŞTURULMUŞ listeye dön
                 openListMenu();
             });
             inventory.setItem(claimConfig.getSlot(), createItemFromConfig(claimConfig, placeholders));
@@ -108,18 +107,14 @@ public class InterestAccountDetailsGUI extends Menu {
             // Vadesi dolmamışsa: Hesabı Boz Butonu
             MenuItemConfig breakConfig = menuManager.getMenuItem(MENU_KEY, "break-button");
             actions.put(breakConfig.getSlot(), () -> {
-                // Onay menüsünü aç
                 MenuItemConfig confirmItemConfig = menuManager.getMenuItem(MENU_KEY, "break-confirmation-item");
                 ItemStack infoItem = createItemFromConfig(confirmItemConfig, placeholders);
 
-                // *** ÇÖZÜM BURADA: Onay veya iptal sonrası YENİ BİR LİSTE MENÜSÜ açılır. ***
                 Runnable onConfirm = () -> {
                     interestService.processAccountAction(player, account.getAccountId());
-                    // İşlem sonrası YENİDEN OLUŞTURULMUŞ listeye dön
                     openListMenu();
                 };
 
-                // Oyuncu iptal ederse de YENİDEN OLUŞTURULMUŞ listeye dönsün.
                 Runnable onCancel = this::openListMenu;
 
                 new ConfirmationGUI(playerMenuUtility, menuManager, infoItem, onConfirm, onCancel).open();
@@ -129,7 +124,6 @@ public class InterestAccountDetailsGUI extends Menu {
 
         // --- Geri Butonu ---
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
-        // Geri butonu her zaman YENİDEN OLUŞTURULMUŞ listeye döner.
         actions.put(backConfig.getSlot(), this::openListMenu);
         inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, new HashMap<>()));
 

@@ -31,8 +31,6 @@ public abstract class PaginatedMenu<T> extends Menu {
         super(playerMenuUtility);
     }
 
-    // --- Soyut Metotlar (Alt Sınıflar Tarafından Uygulanmalı) ---
-
     /**
      * Menüde listelenecek tüm öğelerin tam listesini döndürür.
      */

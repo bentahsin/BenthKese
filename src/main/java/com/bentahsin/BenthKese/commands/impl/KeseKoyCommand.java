@@ -96,14 +96,12 @@ public class KeseKoyCommand implements ISubCommand {
         if (netAmount != -1) {
             double taxAmount = amount - netAmount;
 
-            // --- İSTATİSTİK GÜNCELLEME ---
             PlayerData playerData = storageService.getPlayerData(player.getUniqueId());
             playerData.incrementTotalTransactions();
             if (taxAmount > 0) {
                 playerData.addTotalTaxPaid(taxAmount);
             }
             storageService.savePlayerData(playerData);
-            // --- BİTİŞ ---
 
             // Loglama
             storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.DEPOSIT, amount, itemBirim, System.currentTimeMillis()));
