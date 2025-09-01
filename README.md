@@ -1,7 +1,7 @@
 # BenthKese
 [![Sürüm](https://img.shields.io/badge/Version-1.0.0-blue.svg)]()
 
-[![Uyumlu Sürümler](https://img.shields.io/badge/Spigot/Paper-1.13.x%20--%201.20.x-orange.svg)](https://www.spigotmc.org/)
+[![Uyumlu Sürümler](https://img.shields.io/badge/Spigot/Paper-1.13.x%20--%201.21.x-orange.svg)](https://www.spigotmc.org/)
 [![Gereklilik](https://img.shields.io/badge/Dependency-Vault-blue)](https://www.spigotmc.org/resources/vault.34315/)
 [![İsteğe Bağlı](https://img.shields.io/badge/Optional-PlaceHolderAPI-yellow)](https://www.spigotmc.org/resources/placeholderapi.6245/)
 [![Lisans](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -164,7 +164,7 @@ limit-levels:
 
 ## 🤝 Destek ve Katkıda Bulunma
 
-Bir hata bulursanız veya bir özellik önermek isterseniz, lütfen bu projenin **[Issues](https://github.com/your-username/BenthKese/issues)** sekmesini kullanın. Katkıda bulunmak isterseniz, pull request'ler her zaman memnuniyetle karşılanır.
+Bir hata bulursanız veya bir özellik önermek isterseniz, lütfen bu projenin **[Issues](https://github.com/bentahsin/BenthKese/issues)** sekmesini kullanın. Katkıda bulunmak isterseniz, pull request'ler her zaman memnuniyetle karşılanır.
 
 ## 📜 Lisans
 
