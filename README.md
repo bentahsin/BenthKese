@@ -80,17 +80,59 @@ Kullanıcı dostu menüleri, güçlü yönetici araçları, şeffaf işlem geçm
 
 ## 📊 PlaceHolderAPI Placeholder'ları
 
+
+Aşağıdaki placeholder'ları PlaceHolderAPI destekleyen herhangi bir eklentide kullanabilirsiniz.
+
+### Kişisel Limit ve Bakiye
 | Placeholder | Açıklama |
 | --- | --- |
+| `%benthkese_bakiye_formatted%` | Oyuncunun mevcut bakiyesini formatlı olarak (`1.234 ⛁`) gösterir. |
+| `%benthkese_bakiye_raw%` | Oyuncunun bakiyesini formatsız, ham sayı (`1234.56`) olarak verir. |
 | `%benthkese_limit_seviye_adi%` | Oyuncunun mevcut limit seviyesinin adını döndürür. |
+| `%benthkese_limit_seviye_id%` | Oyuncunun mevcut limit seviyesinin sayısal ID'sini döndürür. |
 | `%benthkese_limit_gonderme_kalan%` | Oyuncunun kalan günlük gönderme limitini döndürür. |
+| `%benthkese_limit_gonderme_kullanilan%` | Oyuncunun o gün kullandığı gönderme miktarını gösterir. |
+| `%benthkese_limit_gonderme_max%` | Oyuncunun maksimum günlük gönderme limitini gösterir. |
+| `%benthkese_limit_alma_kalan%` | Oyuncunun kalan günlük alma limitini döndürür. |
+| `%benthkese_limit_reset_suresi%` | Günlük limitlerin sıfırlanmasına kalan süreyi gösterir. |
 | `%benthkese_limit_sonraki_seviye_adi%` | Oyuncunun bir sonraki limit seviyesinin adını döndürür. |
-| `%benthkese_limit_sonraki_seviye_ucret%`| Bir sonraki seviyeye yükseltme maliyetini döndürür. |
+| `%benthkese_limit_sonraki_seviye_ucret%` | Bir sonraki seviyeye yükseltme maliyetini döndürür. |
 | `%benthkese_limit_sonraki_seviye_ilerleme%`| Oyuncunun bir sonraki seviyeye ne kadar yakın olduğunu yüzde olarak gösterir.|
 | `%benthkese_limit_yukseltebilir_mi%` | Oyuncunun seviye yükseltip yükseltemeyeceğini (`Evet`/`Hayır`) gösterir. |
-| `%benthkese_bakiye_<oyuncu_adı>%` | Belirtilen oyuncunun bakiyesini döndürür. |
-| `%benthkese_seviye_adi_<oyuncu_adı>%` | Belirtilen oyuncunun seviye adını döndürür. |
-| `%benthkese_seviye_adi_from_id_<id>%` | Belirtilen ID'ye sahip seviyenin adını döndürür. |
+
+### Vadeli Faiz Sistemi
+| Placeholder | Açıklama |
+| --- | --- |
+| `%benthkese_faiz_hesap_sayisi%` | Oyuncunun aktif vadeli hesaplarının sayısını gösterir. |
+| `%benthkese_faiz_hesap_durum%` | Oyuncunun hesap durumunu `mevcut / max` formatında gösterir. |
+| `%benthkese_faiz_yatirim_toplam%` | Oyuncunun tüm vadeli hesaplarındaki toplam anapara miktarını gösterir. |
+| `%benthkese_faiz_sonraki_kazanc_miktar%` | Vadesi en yakın olan hesaptan ne kadar para kazanılacağını gösterir. |
+| `%benthkese_faiz_sonraki_kazanc_sure%` | Vadesi en yakın olan hesabın ne zaman dolacağını gösterir. |
+
+### Kişisel İstatistikler
+| Placeholder | Açıklama |
+| --- | --- |
+| `%benthkese_toplam_islem_sayisi%` | Oyuncunun yaptığı toplam işlem sayısını gösterir. |
+| `%benthkese_gonderilen_toplam_para%` | Oyuncunun bugüne kadar gönderdiği toplam para miktarını gösterir. |
+| `%benthkese_odenen_toplam_vergi%` | Oyuncunun bugüne kadar ödediği toplam vergi miktarını gösterir. |
+| `%benthkese_siralama_bakiye%` | Oyuncunun sunucudaki bakiye sıralamasını gösterir. |
+| `%benthkese_siralama_bakiye_hedef_kalan%` | Sıralamada bir üstündeki oyuncuyu geçmek için gereken para miktarını gösterir. |
+
+### Sunucu Liderlik Tabloları (SQL Gerekli)
+| Placeholder | Açıklama |
+| --- | --- |
+| `%benthkese_top_bakiye_isim_<1-10>%` | Sunucudaki en zengin X. oyuncunun adını gösterir. |
+| `%benthkese_top_bakiye_deger_<1-10>%` | Sunucudaki en zengin X. oyuncunun bakiyesini gösterir. |
+| `%benthkese_top_seviye_isim_<1-10>%` | En yüksek limit seviyesine sahip X. oyuncunun adını gösterir. |
+| `%benthkese_top_seviye_deger_<1-10>%` | En yüksek limit seviyesine sahip X. oyuncunun seviye adını gösterir. |
+
+### Sunucu Bilgileri
+| Placeholder | Açıklama |
+| --- | --- |
+| `%benthkese_ekonomi_item_adi%` | Ekonomide kullanılan fiziksel eşyanın adını gösterir. |
+| `%benthkese_vergi_yatirma_oran_yuzde%` | Para yatırma vergisinin yüzde olarak değerini gösterir. |
+| `%benthkese_vergi_cekme_oran_yuzde%` | Para çekme vergisinin yüzde olarak değerini gösterir. |
+| `%benthkese_vergi_gonderme_oran_yuzde%` | Para gönderme vergisinin yüzde olarak değerini gösterir. |
 
 ## ⚙️ Yapılandırma
 

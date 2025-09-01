@@ -17,6 +17,10 @@ public class PlayerData {
     private double dailySent;
     private double dailyReceived;
     private long lastResetTime;
+    private double balance;
+    private int totalTransactions;
+    private double totalSent;
+    private double totalTaxPaid;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -24,6 +28,9 @@ public class PlayerData {
         this.dailySent = 0;
         this.dailyReceived = 0;
         this.lastResetTime = System.currentTimeMillis();
+        this.totalTransactions = 0;
+        this.totalSent = 0;
+        this.totalTaxPaid = 0;
     }
 
     // Getter ve Setter'lar
@@ -38,7 +45,17 @@ public class PlayerData {
     public void addDailyReceived(double amount) { this.dailyReceived += amount; }
     public long getLastResetTime() { return lastResetTime; }
     public void setLastResetTime(long lastResetTime) { this.lastResetTime = lastResetTime; }
-
+    public double getBalance() { return balance; }
+    public void setBalance(double balance) { this.balance = balance; }
+    public int getTotalTransactions() { return totalTransactions; }
+    public void setTotalTransactions(int totalTransactions) { this.totalTransactions = totalTransactions; }
+    public void incrementTotalTransactions() { this.totalTransactions++; }
+    public double getTotalSent() { return totalSent; }
+    public void setTotalSent(double totalSent) { this.totalSent = totalSent; }
+    public void addTotalSent(double amount) { this.totalSent += amount; }
+    public double getTotalTaxPaid() { return totalTaxPaid; }
+    public void setTotalTaxPaid(double totalTaxPaid) { this.totalTaxPaid = totalTaxPaid; }
+    public void addTotalTaxPaid(double taxAmount) { this.totalTaxPaid += taxAmount; }
     public void resetDailyLimits() {
         this.dailySent = 0;
         this.dailyReceived = 0;

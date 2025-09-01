@@ -13,11 +13,14 @@ import com.bentahsin.BenthKese.commands.impl.*;
 import com.bentahsin.BenthKese.commands.admin.AdminCommandManager;
 import com.bentahsin.BenthKese.commands.admin.impl.*;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.expansion.BenthKeseExpansion;
+import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.listener.MenuListener;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.listeners.PlayerConnectionListener;
+import com.bentahsin.BenthKese.services.BalanceSyncTask;
 import com.bentahsin.BenthKese.services.EconomyService;
 import com.bentahsin.BenthKese.services.InterestService;
 import com.bentahsin.BenthKese.services.LimitManager;
@@ -28,6 +31,9 @@ import com.bentahsin.BenthKese.services.storage.database.MySQLStorageService;
 import com.bentahsin.BenthKese.services.storage.database.SQLiteStorageService;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Player;
@@ -49,6 +55,7 @@ public final class BenthKese extends JavaPlugin {
     private IStorageService storageService;
     private InterestService interestService;
     private DatabaseManager databaseManager;
+    private MenuManager menuManager;
     private final Map<Player, PlayerMenuUtility> playerMenuUtilityMap = new HashMap<>();
 
     @Override
@@ -61,6 +68,7 @@ public final class BenthKese extends JavaPlugin {
 
         saveDefaultConfig();
         this.configurationManager = new ConfigurationManager(this);
+        this.menuManager = new MenuManager(this);
         this.messageManager = new MessageManager(this);
         this.limitManager = new LimitManager(this);
 
@@ -73,10 +81,14 @@ public final class BenthKese extends JavaPlugin {
         registerListeners();
 
         if (Bukkit.getPluginManager().getPlugin("PlaceHolderAPI") != null) {
-            new BenthKeseExpansion(this, storageService, limitManager, messageManager).register();
+            new BenthKeseExpansion(this, storageService, limitManager, messageManager, configurationManager).register();
             getLogger().info("PlaceHolderAPI bulundu ve placeholder'lar başarıyla kaydedildi.");
         } else {
             getLogger().info("PlaceHolderAPI bulunamadı, placeholder'lar devre dışı bırakıldı.");
+        }
+
+        if (!(storageService instanceof YamlStorageService)) {
+            new BalanceSyncTask(storageService).runTaskTimer(this, 100L, 6000L);
         }
 
         getLogger().info("BenthKese Eklentisi başarıyla etkinleştirildi!");
@@ -98,6 +110,7 @@ public final class BenthKese extends JavaPlugin {
         this.configurationManager.loadConfig(); // config.yml
         this.messageManager.loadMessages();     // messages.yml
         this.limitManager.loadLimits();         // limits.yml
+        this.menuManager.loadMenus();           // menus.yml
         getLogger().info("Konfigürasyon dosyaları yeniden yüklendi.");
     }
 
@@ -120,7 +133,7 @@ public final class BenthKese extends JavaPlugin {
             this.databaseManager = new DatabaseManager(this);
             try {
                 databaseManager.connect();
-                this.storageService = new MySQLStorageService(this, this.databaseManager);
+                this.storageService = new MySQLStorageService(this, this.databaseManager, this.limitManager);
                 getLogger().info("MySQL depolama sistemi başarıyla yüklendi.");
             } catch (SQLException e) {
                 getLogger().log(Level.SEVERE, "MySQL veritabanına bağlanılamadı! YAML depolamaya geçiliyor.", e);
@@ -130,7 +143,7 @@ public final class BenthKese extends JavaPlugin {
             this.databaseManager = new DatabaseManager(this);
             try {
                 databaseManager.connect();
-                this.storageService = new SQLiteStorageService(this, this.databaseManager);
+                this.storageService = new SQLiteStorageService(this, this.databaseManager, this.limitManager);
                 getLogger().info("SQLite depolama sistemi başarıyla yüklendi.");
             } catch (SQLException e) {
                 getLogger().log(Level.SEVERE, "SQLite veritabanına bağlanılamadı! YAML depolamaya geçiliyor.", e);
@@ -143,7 +156,7 @@ public final class BenthKese extends JavaPlugin {
     }
 
     private void registerCommands() {
-        CommandManager commandManager = new CommandManager(messageManager, this, economyService, configurationManager, storageService, limitManager, interestService);
+        CommandManager commandManager = new CommandManager(messageManager, this, economyService, configurationManager, storageService, limitManager, interestService, menuManager);
 
         commandManager.registerCommand(new KeseHelpCommand(messageManager));
         commandManager.registerCommand(new KeseBakiyeCommand(messageManager));
@@ -154,7 +167,7 @@ public final class BenthKese extends JavaPlugin {
 
         KeseFaizCommand faizManagerCommand = new KeseFaizCommand(messageManager);
         faizManagerCommand.registerSubCommand(new KeseFaizHelpCommand(messageManager));
-        faizManagerCommand.registerSubCommand(new KeseFaizListeCommand(this, messageManager, storageService, economyService, configurationManager, limitManager, interestService));
+        faizManagerCommand.registerSubCommand(new KeseFaizListeCommand(this, messageManager, storageService, economyService, configurationManager, limitManager, interestService, menuManager));
         faizManagerCommand.registerSubCommand(new KeseFaizKoyCommand(messageManager, interestService));
         commandManager.registerCommand(faizManagerCommand);
 
@@ -185,6 +198,15 @@ public final class BenthKese extends JavaPlugin {
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(storageService), this);
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
+        getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onMenuClose(InventoryCloseEvent event) {
+                if (event.getInventory().getHolder() instanceof Menu) {
+                    Menu menu = (Menu) event.getInventory().getHolder();
+                    menu.stopUpdateTask();
+                }
+            }
+        }, this);
     }
 
     public PlayerMenuUtility getPlayerMenuUtility(Player p) {
@@ -199,5 +221,8 @@ public final class BenthKese extends JavaPlugin {
     }
     public static Economy getEconomy() {
         return econ;
+    }
+    public MenuManager getMenuManager() {
+        return menuManager;
     }
 }

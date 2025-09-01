@@ -10,6 +10,8 @@ package com.bentahsin.BenthKese.gui.menus;
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.commands.impl.KeseKoyCommand;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuItemConfig;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
@@ -19,82 +21,84 @@ import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import com.bentahsin.BenthKese.utils.AnvilGUIHelper;
 import net.wesjd.anvilgui.AnvilGUI;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class KeseYatirGUI extends Menu {
+
+    private static final String MENU_KEY = "deposit-menu";
+
     private final BenthKese plugin;
+    private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final EconomyService economyService;
     private final ConfigurationManager configManager;
-    private final LimitManager limitManager;
     private final IStorageService storageService;
+    private final LimitManager limitManager;
     private final InterestService interestService;
     private final KeseKoyCommand koyCommandLogic;
 
-    public KeseYatirGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
+    public KeseYatirGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.plugin = plugin;
+        this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.configManager = configManager;
-        this.limitManager = limitManager;
         this.storageService = storageService;
         this.economyService = economyService;
+        this.limitManager = limitManager;
         this.interestService = interestService;
         this.koyCommandLogic = new KeseKoyCommand(messageManager, economyService, configManager, storageService);
     }
 
     @Override
     public String getMenuName() {
-        return messageManager.getMessage("gui.deposit-menu.title");
+        return menuManager.getMenuTitle(MENU_KEY);
     }
 
     @Override
     public int getSlots() {
-        return 36;
+        return menuManager.getMenuSize(MENU_KEY);
     }
 
     @Override
     public void setMenuItems() {
-        // Miktar girmek için AnvilGUI butonu
-        actions.put(11, this::openDepositAnvil);
-        inventory.setItem(11, createGuiItem(Material.ANVIL,
-                messageManager.getMessage("gui.deposit-menu.anvil.name"),
-                messageManager.getMessageList("gui.deposit-menu.anvil.lore").toArray(new String[0]))
-        );
+        // Buton konfigürasyonlarını menus.yml'den al
+        MenuItemConfig anvilConfig = menuManager.getMenuItem(MENU_KEY, "anvil-input");
+        MenuItemConfig handConfig = menuManager.getMenuItem(MENU_KEY, "deposit-hand");
+        MenuItemConfig inventoryConfig = menuManager.getMenuItem(MENU_KEY, "deposit-inventory");
+        MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
 
-        // Elindekini yatır butonu
-        actions.put(13, () -> {
+        // Eylemleri ata
+        actions.put(anvilConfig.getSlot(), this::openDepositAnvil);
+        actions.put(handConfig.getSlot(), () -> {
             koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{"el"});
             playerMenuUtility.getOwner().closeInventory();
         });
-        inventory.setItem(13, createGuiItem(Material.ARMOR_STAND,
-                messageManager.getMessage("gui.deposit-menu.hand.name"),
-                messageManager.getMessageList("gui.deposit-menu.hand.lore").toArray(new String[0]))
-        );
-
-        // Envanterdekileri yatır butonu
-        actions.put(15, () -> {
+        actions.put(inventoryConfig.getSlot(), () -> {
             koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{"envanter"});
             playerMenuUtility.getOwner().closeInventory();
         });
-        inventory.setItem(15, createGuiItem(Material.CHEST,
-                messageManager.getMessage("gui.deposit-menu.inventory.name"),
-                messageManager.getMessageList("gui.deposit-menu.inventory.lore").toArray(new String[0]))
-        );
+        actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
 
-        // Hızlı yatırma butonları
+        // Butonları envantere yerleştir
+        inventory.setItem(anvilConfig.getSlot(), createItemFromConfig(anvilConfig, Collections.emptyMap()));
+        inventory.setItem(handConfig.getSlot(), createItemFromConfig(handConfig, Collections.emptyMap()));
+        inventory.setItem(inventoryConfig.getSlot(), createItemFromConfig(inventoryConfig, Collections.emptyMap()));
+        inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
+
+        // Hızlı yatırma butonlarını oluştur
+        // Slotlar ve miktarlar şimdilik kod içinde tanımlı kalabilir,
+        // ancak metin ve materyal menus.yml'den okunur.
         addDepositButton(21, 16);
         addDepositButton(22, 32);
         addDepositButton(23, 64);
 
-        // Geri butonu
-        actions.put(35, () -> new KeseMainMenuGUI(playerMenuUtility, plugin, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
-        inventory.setItem(35, createGuiItem(Material.BARRIER, messageManager.getMessage("gui.general.back-button")));
-
-        fillEmptySlots();
+        // Boşlukları doldur
+        fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }
 
     private void addDepositButton(int slot, int amount) {
@@ -103,12 +107,12 @@ public class KeseYatirGUI extends Menu {
             playerMenuUtility.getOwner().closeInventory();
         });
 
-        inventory.setItem(slot, createGuiItem(Material.GOLD_NUGGET,
-                messageManager.getMessage("gui.deposit-menu.quick-deposit.name").replace("{miktar}", String.valueOf(amount)),
-                messageManager.getMessageList("gui.deposit-menu.quick-deposit.lore")
-                        .stream()
-                        .map(line -> line.replace("{miktar}", String.valueOf(amount))).toArray(String[]::new))
-        );
+        MenuItemConfig quickDepositConfig = menuManager.getMenuItem(MENU_KEY, "quick-deposit");
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{miktar}", String.valueOf(amount));
+
+        // createGuiItem yerine yeni createItemFromConfig metodunu kullanıyoruz
+        inventory.setItem(slot, createItemFromConfig(quickDepositConfig, placeholders));
     }
 
     private void openDepositAnvil() {
@@ -117,7 +121,7 @@ public class KeseYatirGUI extends Menu {
                 playerMenuUtility.getOwner(),
                 messageManager,
                 messageManager.getMessage("gui.deposit-menu.anvil-title"),
-                new ItemStack(Material.PAPER),
+                new ItemStack(menuManager.getMenuItem(MENU_KEY, "anvil-input").getMaterial()),
                 (amount) -> {
                     koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{String.valueOf(amount.intValue())});
                     return Collections.singletonList(AnvilGUI.ResponseAction.close());

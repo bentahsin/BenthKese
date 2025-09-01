@@ -1,13 +1,9 @@
-/*
- * BenthKese - A modern economy and limit system for Spigot.
- * Copyright (c) 2025 bentahsin.
- *
- * This project is licensed under the MIT License.
- * See the LICENSE file in the project root for full license information.
- */
 package com.bentahsin.BenthKese.gui;
 
+import com.bentahsin.BenthKese.BenthKese;
+import com.bentahsin.BenthKese.configuration.MenuItemConfig;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
+import com.bentahsin.BenthKese.utils.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,11 +12,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class Menu implements InventoryHolder {
@@ -28,7 +23,8 @@ public abstract class Menu implements InventoryHolder {
     protected Inventory inventory;
     protected PlayerMenuUtility playerMenuUtility;
     protected Map<Integer, Runnable> actions = new HashMap<>();
-    protected static final ItemStack FILLER_GLASS = createGuiItem(Material.GRAY_STAINED_GLASS_PANE, " ");
+
+    private BukkitTask updateTask;
 
     public Menu(PlayerMenuUtility playerMenuUtility) {
         this.playerMenuUtility = playerMenuUtility;
@@ -45,6 +41,8 @@ public abstract class Menu implements InventoryHolder {
     }
 
     public void open() {
+        stopUpdateTask();
+
         inventory = Bukkit.createInventory(this, getSlots(), getMenuName());
         this.setMenuItems();
         playerMenuUtility.getOwner().openInventory(inventory);
@@ -55,25 +53,58 @@ public abstract class Menu implements InventoryHolder {
         return inventory;
     }
 
-    public static ItemStack createGuiItem(Material material, String name, String... lore) {
-        ItemStack item = new ItemStack(material, 1);
+    /**
+     * Bu menü için periyodik bir güncelleme görevi başlatır.
+     * Görev, her 'period' tick'te bir onUpdate() metodunu çağırır.
+     * @param plugin Ana plugin referansı.
+     * @param delay Görevin başlamadan önceki gecikmesi (tick cinsinden).
+     * @param period Görevin tekrarlanma periyodu (tick cinsinden, 20 tick = 1 saniye).
+     */
+    protected void startUpdateTask(BenthKese plugin, long delay, long period) {
+        stopUpdateTask(); // Önceki görevi durdurduğundan emin ol
+        updateTask = Bukkit.getScheduler().runTaskTimer(plugin, this::onUpdate, delay, period);
+    }
+
+    /**
+     * Varsa, bu menüye ait güncelleme görevini durdurur.
+     */
+    public void stopUpdateTask() {
+        if (updateTask != null) {
+            updateTask.cancel();
+            updateTask = null;
+        }
+    }
+
+    /**
+     * startUpdateTask ile başlatılan görev tarafından periyodik olarak çağrılır.
+     * Dinamik olarak güncellenmesi gereken menüler bu metodu override etmelidir.
+     */
+    public void onUpdate() {
+        // Varsayılan olarak hiçbir şey yapmaz.
+    }
+
+    public ItemStack createItemFromConfig(MenuItemConfig config, Map<String, String> placeholders) {
+        ItemStack item = new ItemStack(config.getMaterial(), 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-            if (lore != null && lore.length > 0) {
-                meta.setLore(Arrays.stream(lore)
-                        .map(line -> ChatColor.translateAlternateColorCodes('&', line))
-                        .collect(Collectors.toList()));
-            }
+            String processedName = TextUtil.replacePlaceholders(config.getName(), placeholders);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', processedName));
+
+            List<String> processedLore = TextUtil.replacePlaceholders(config.getLore(), placeholders);
+            meta.setLore(processedLore.stream()
+                    .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                    .collect(Collectors.toList()));
             item.setItemMeta(meta);
         }
         return item;
     }
 
-    protected void fillEmptySlots() {
+    public void fillEmptySlots(MenuItemConfig fillerConfig) {
+        if (fillerConfig == null || fillerConfig.getMaterial() == Material.AIR) return;
+        ItemStack fillerItem = createItemFromConfig(fillerConfig, Collections.emptyMap());
         for (int i = 0; i < getSlots(); i++) {
             if (inventory.getItem(i) == null) {
-                inventory.setItem(i, FILLER_GLASS);
+                inventory.setItem(i, fillerItem);
             }
         }
     }

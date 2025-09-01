@@ -10,6 +10,7 @@ package com.bentahsin.BenthKese.commands.impl;
 import com.bentahsin.BenthKese.commands.ISubCommand;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -61,7 +62,6 @@ public class KeseKoyCommand implements ISubCommand {
         Player player = (Player) sender;
         String itemBirim = configManager.getEconomyItemMaterial().name().toLowerCase().replace("_", " ");
 
-        // /kese koy (1 adet yatırır)
         if (args.length == 0) {
             handleDepositAmount(player, 1, itemBirim);
             return;
@@ -69,19 +69,16 @@ public class KeseKoyCommand implements ISubCommand {
 
         String arg = args[0].toLowerCase();
 
-        // /kese koy el
         if (arg.equals("el") || arg.equals("hand")) {
             handleDepositHand(player, itemBirim);
             return;
         }
 
-        // /kese koy envanter
         if (arg.equals("envanter")) {
             handleDepositInventory(player, itemBirim);
             return;
         }
 
-        // /kese koy <miktar>
         try {
             int amount = Integer.parseInt(arg);
             if (amount <= 0) {
@@ -97,8 +94,20 @@ public class KeseKoyCommand implements ISubCommand {
     private void handleDepositAmount(Player player, int amount, String itemBirim) {
         double netAmount = economyService.deposit(player, amount);
         if (netAmount != -1) {
-            storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.DEPOSIT, amount, itemBirim, System.currentTimeMillis()));
             double taxAmount = amount - netAmount;
+
+            // --- İSTATİSTİK GÜNCELLEME ---
+            PlayerData playerData = storageService.getPlayerData(player.getUniqueId());
+            playerData.incrementTotalTransactions();
+            if (taxAmount > 0) {
+                playerData.addTotalTaxPaid(taxAmount);
+            }
+            storageService.savePlayerData(playerData);
+            // --- BİTİŞ ---
+
+            // Loglama
+            storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.DEPOSIT, amount, itemBirim, System.currentTimeMillis()));
+
             String successMessage = messageManager.getMessage("deposit-success")
                     .replace("{miktar}", numberFormat.format(amount))
                     .replace("{net_miktar}", numberFormat.format(netAmount))

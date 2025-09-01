@@ -8,10 +8,7 @@
 package com.bentahsin.BenthKese.services.storage;
 
 import com.bentahsin.BenthKese.BenthKese;
-import com.bentahsin.BenthKese.data.InterestAccount;
-import com.bentahsin.BenthKese.data.PlayerData;
-import com.bentahsin.BenthKese.data.TransactionData;
-import com.bentahsin.BenthKese.data.TransactionType;
+import com.bentahsin.BenthKese.data.*;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -49,8 +46,6 @@ public class YamlStorageService implements IStorageService {
     @Override
     public void savePlayerData(PlayerData playerData) {
         playerDataCache.put(playerData.getUuid(), playerData);
-        // Kaydetme işlemi artık logTransaction tarafından tetiklenebilir veya unload'da yapılabilir.
-        // Sürekli kaydetmeyi önlemek için bu satırı kaldırabiliriz.
     }
 
     @Override
@@ -60,7 +55,6 @@ public class YamlStorageService implements IStorageService {
 
     @Override
     public void unloadPlayer(UUID uuid) {
-        // Çıkış yapan oyuncunun tüm verilerini senkron olarak kaydet
         if (playerDataCache.containsKey(uuid)) {
             File playerFile = new File(dataFolder, uuid + ".yml");
             FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
@@ -105,7 +99,6 @@ public class YamlStorageService implements IStorageService {
 
     @Override
     public void saveInterestAccount(InterestAccount account) {
-        // Bu metot doğrudan dosyaya yazar, çünkü anlık bir işlemdir.
         File playerFile = new File(dataFolder, account.getPlayerUuid().toString() + ".yml");
         FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
         String path = "interest-accounts." + account.getAccountId();
@@ -133,9 +126,7 @@ public class YamlStorageService implements IStorageService {
         }
     }
 
-
-    // --- YENİ EKLENEN VE DÜZELTİLEN METOTLAR ---
-
+    // --- İşlemler ---
     @Override
     public void logTransaction(TransactionData transaction) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -154,7 +145,6 @@ public class YamlStorageService implements IStorageService {
             newTransactionMap.put("timestamp", transaction.getTimestamp());
             history.add(newTransactionMap);
 
-            // Eski kayıtları sil
             while (history.size() > MAX_TRANSACTIONS_TO_KEEP) {
                 history.remove(0);
             }
@@ -182,10 +172,9 @@ public class YamlStorageService implements IStorageService {
         }
 
         List<TransactionData> transactions = new ArrayList<>();
-        // En sondan (en yeniden) başlayarak oku
         for (int i = history.size() - 1; i >= 0; i--) {
             if (transactions.size() >= limit) {
-                break; // İstenen limite ulaşıldı
+                break;
             }
 
             Map<?, ?> entry = history.get(i);
@@ -221,7 +210,6 @@ public class YamlStorageService implements IStorageService {
     }
 
     private void saveAllDataToConfig(FileConfiguration config, UUID uuid) {
-        // PlayerData'yı kaydet
         PlayerData playerData = playerDataCache.get(uuid);
         if (playerData != null) {
             config.set("limit-level", playerData.getLimitLevel());
@@ -229,5 +217,41 @@ public class YamlStorageService implements IStorageService {
             config.set("daily-received", playerData.getDailyReceived());
             config.set("last-reset-time", playerData.getLastResetTime());
         }
+    }
+
+    // --- IStorageService'den Gelen Diğer Metotlar (YAML için Verimsiz Olduğundan Boş Bırakıldı) ---
+
+    @Override
+    public List<TopPlayerEntry> getTopPlayersByBalance(int limit) {
+        // YAML depolama için çok verimsiz bir işlemdir. Tüm dosyaları taramak gerekir.
+        // Bu özellik için veritabanı (MySQL, SQLite) kullanılması önerilir.
+        plugin.getLogger().warning("getTopPlayersByBalance metodu YAML depolaması için desteklenmiyor.");
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<TopPlayerEntry> getTopPlayersByLimitLevel(int limit) {
+        // YAML depolama için çok verimsiz bir işlemdir.
+        plugin.getLogger().warning("getTopPlayersByLimitLevel metodu YAML depolaması için desteklenmiyor.");
+        return Collections.emptyList();
+    }
+
+    @Override
+    public int getPlayerBalanceRank(UUID uuid) {
+        // YAML depolama için çok verimsiz bir işlemdir.
+        plugin.getLogger().warning("getPlayerBalanceRank metodu YAML depolaması için desteklenmiyor.");
+        return -1; // -1 genellikle 'bulunamadı' veya 'desteklenmiyor' anlamına gelir.
+    }
+
+    @Override
+    public void updatePlayerName(UUID uuid, String name) {
+        // Oyuncu isimleri genellikle ana sunucu tarafından yönetilir ve YAML'da ayrıca saklanmaz.
+        // Eğer saklanması gerekiyorsa, buraya bir kayıt mekanizması eklenebilir.
+    }
+
+    @Override
+    public void updatePlayerBalance(UUID uuid, double balance) {
+        // Bakiye, Vault ve ekonomi eklentisi tarafından yönetilir.
+        // Bu metodun YAML depolamasında doğrudan bir karşılığı yoktur.
     }
 }

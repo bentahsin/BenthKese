@@ -8,17 +8,26 @@
 package com.bentahsin.BenthKese.services.storage.database;
 
 import com.bentahsin.BenthKese.BenthKese;
+import com.bentahsin.BenthKese.services.LimitManager;
 
 public class MySQLStorageService extends AbstractSqlStorageService {
 
-    public MySQLStorageService(BenthKese plugin, DatabaseManager databaseManager) {
-        super(plugin, databaseManager);
+    public MySQLStorageService(BenthKese plugin, DatabaseManager databaseManager, LimitManager limitManager) {
+        super(plugin, databaseManager, limitManager);
     }
 
     @Override
     protected String getUpsertPlayerStatement() {
-        return "INSERT INTO benthkese_playerdata (uuid, limit_level, daily_sent, daily_received, last_reset_time) VALUES (?, ?, ?, ?, ?) " +
+        return "INSERT INTO benthkese_playerdata (uuid, limit_level, daily_sent, daily_received, last_reset_time, balance, total_transactions, total_sent, total_tax_paid) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE " +
-                "limit_level = ?, daily_sent = ?, daily_received = ?, last_reset_time = ?;";
+                "limit_level = VALUES(limit_level), " +
+                "daily_sent = VALUES(daily_sent), " +
+                "daily_received = VALUES(daily_received), " +
+                "last_reset_time = VALUES(last_reset_time), " +
+                "balance = VALUES(balance), " +
+                "total_transactions = VALUES(total_transactions), " +
+                "total_sent = VALUES(total_sent), " +
+                "total_tax_paid = VALUES(total_tax_paid);";
     }
 }

@@ -1,0 +1,558 @@
+# BenthKese GUI Kişiselleştirme Motoru
+# Bu dosya üzerinden tüm menülerin görünümünü, boyutunu ve içeriğini düzenleyebilirsiniz.
+#
+# GENEL NOTLAR:
+#   size: Menünün boyutu. 9'un katları olmalıdır (9, 18, 27, 36, 45, 54).
+#   slot: Item'ın konulacağı slot (0'dan başlar).
+#   material: Bukkit materyal isimleri. Örn: GOLD_INGOT, DIAMOND_BLOCK.
+#   custom-model-data: (İsteğe bağlı) Özel texture'lar için model verisi.
+#   name: Item'ın görünen adı.
+#   lore: Item'ın alt metinleri.
+#
+# Placeholder'ları {placeholder_adi} şeklinde kullanabilirsiniz.
+
+main-menu:
+  title: "&8BenthKese Ana Menü"
+  size: 36
+  items:
+    # Arka planı dolduracak item.
+    filler-item:
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+      # Hangi slotların doldurulacağını belirtin veya boş bırakarak tüm boşlukları doldurun.
+      # slots: [0, 1, 2, 3, 5, 6, 7, 8]
+
+    # Bakiye göstergesi
+    balance-display:
+      material: "EMERALD"
+      slot: 4
+      name: "&eMevcut Bakiye"
+      lore:
+        - "&7Bu, sanal kesendeki paradır."
+        - "&6Toplam Varlık: &e{bakiye} ⛁"
+
+    # Para Yatır Butonu
+    deposit:
+      material: "GOLD_INGOT"
+      slot: 10
+      name: "&a&lPara Yatır"
+      lore:
+        - "&7Envanterindeki altınları"
+        - "&7keseye yatırmak için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+
+    # Para Çek Butonu
+    withdraw:
+      material: "DIAMOND"
+      slot: 12
+      name: "&b&lPara Çek"
+      lore:
+        - "&7Kesendeki parayı fiziksel"
+        - "&7altına çevirmek için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+
+    # Para Gönder Butonu
+    send:
+      material: "ENDER_PEARL"
+      slot: 14
+      name: "&d&lPara Gönder"
+      lore:
+        - "&7Başka bir oyuncuya"
+        - "&7para göndermek için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+
+    # Limit Bilgileri Butonu
+    limit:
+      material: "BEACON"
+      slot: 16
+      name: "&6&lLimit Bilgileri"
+      lore:
+        - "&7Günlük limitlerini ve seviyeni"
+        - "&7görüntülemek için tıkla."
+        - ""
+        - "&e» Tıkla ve işlem yap!"
+
+    # Faiz Sistemi Butonu
+    interest:
+      material: "KNOWLEDGE_BOOK"
+      slot: 29
+      name: "&6&lVadeli Faiz"
+      lore:
+        - "&7Paranı faize yatırarak"
+        - "&7gelir elde et."
+        - ""
+        - "&e» Tıkla ve hesaplarını yönet!"
+
+    # İşlem Geçmişi Butonu
+    history:
+      material: "WRITABLE_BOOK"
+      slot: 33
+      name: "&e&lİşlem Geçmişi"
+      lore:
+        - "&7Son finansal hareketlerini"
+        - "&7görüntülemek için tıkla."
+
+
+#---------------------------------------------------
+# Para Yatırma Menüsü
+#---------------------------------------------------
+deposit-menu:
+  title: "&8Para Yatırma Menüsü"
+  size: 36
+  items:
+    filler-item:
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+
+    # Miktar Girme Butonu
+    anvil-input:
+      material: "ANVIL"
+      slot: 11
+      name: "&eMiktar Gir"
+      lore:
+        - "&7Yatırmak istediğin miktarı"
+        - "&7kendin belirlemek için tıkla."
+
+    # Eldekini Yatırma Butonu
+    deposit-hand:
+      material: "ARMOR_STAND"
+      slot: 13
+      name: "&eElindekileri Yatır"
+      lore:
+        - "&7Elinde tuttuğun tüm altınları"
+        - "&7keseye yatırmak için tıkla."
+
+    # Envanteri Yatırma Butonu
+    deposit-inventory:
+      material: "CHEST"
+      slot: 15
+      name: "&eEnvanteri Yatır"
+      lore:
+        - "&7Envanterindeki tüm altınları"
+        - "&7keseye yatırmak için tıkla."
+
+    # Hızlı Yatırma Butonları
+    # Not: Bu butonlar için slot ve miktar kod içinde hard-coded kalabilir,
+    # çünkü mantıkları doğrudan birbirine bağlıdır. Alternatif olarak,
+    # quick-deposit-1, quick-deposit-2 gibi ayrı ayrı da tanımlanabilir.
+    # Şimdilik metinlerini ve materyalini buradan alacağız.
+    quick-deposit:
+      material: "GOLD_NUGGET"
+      name: "&aHızlı Yatır: &e{miktar}"
+      lore:
+        - "&7Envanterinden hızlıca"
+        - "&e{miktar} &7altın yatır."
+
+    # Geri Butonu
+    back-button:
+      material: "BARRIER"
+      slot: 35
+      name: "&c« Geri"
+      lore: []
+
+
+#---------------------------------------------------
+# Para Çekme Menüsü
+#---------------------------------------------------
+withdraw-menu:
+  title: "&8Para Çekme Menüsü"
+  size: 27
+  items:
+    filler-item:
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+
+    # Miktar Girme Butonu
+    anvil-input:
+      material: "ANVIL"
+      slot: 11
+      name: "&eMiktar Gir"
+      lore:
+        - "&7Çekmek istediğin miktarı"
+        - "&7kendin belirlemek için tıkla."
+
+    # Hızlı Çekme Butonları
+    quick-withdraw:
+      material: "GOLD_INGOT" # Varsayılan olarak altın çekilir
+      name: "&aHızlı Çek: &e{miktar}"
+      lore:
+        - "&7Envanterine hızlıca"
+        - "&e{miktar} &7altın çek."
+
+    # Geri Butonu
+    back-button:
+      material: "BARRIER"
+      slot: 26
+      name: "&c« Geri"
+      lore: []
+
+
+#---------------------------------------------------
+# Para Gönderme Menüleri (AnvilGUI)
+#---------------------------------------------------
+send-menu:
+  # Oyuncu seçme AnvilGUI'si için ayarlar
+  player-input:
+    title: "&8Kime para göndereceksin?"
+    display-item: "NAME_TAG"
+
+  # Miktar girme AnvilGUI'si için ayarlar
+  amount-input:
+    title: "&8{oyuncu} > Gönderilecek Miktar"
+    display-item: "GOLD_INGOT"
+
+
+#---------------------------------------------------
+# Limit Bilgileri Menüsü
+#---------------------------------------------------
+limit-menu:
+  title: "&8Limit Bilgileri"
+  size: 27
+  items:
+    filler-item:
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+
+    # Mevcut Durum Paneli
+    status-display:
+      material: "BOOK"
+      slot: 11
+      name: "&6Mevcut Limit Durumun"
+      lore:
+        - "&7Seviyen: {seviye_adi}"
+        - "&7"
+        - "&7Günlük Gönderme Limiti:"
+        - "&e- Kullanılan: &c{kullanilan}"
+        - "&e- Kalan: &a{kalan}"
+        - "&e- Maksimum: &6{max}"
+
+    # Seviye Yükseltme Butonu (Başarılı)
+    upgrade-success:
+      material: "EMERALD"
+      slot: 15
+      name: "&a&lSeviye Yükselt"
+      lore:
+        - "&7Bir sonraki seviyeye geç:"
+        - "{yeni_seviye}"
+        - ""
+        - "&7Maliyet: &c{maliyet} ⛁"
+        - ""
+        - "&e» Yükseltmek için tıkla!"
+
+    # Seviye Yükseltme Butonu (Başarısız)
+    upgrade-fail:
+      material: "REDSTONE_BLOCK"
+      slot: 15
+      name: "&c&lSeviye Yükseltilemez"
+      lore:
+        - "&7Bir sonraki seviyeye geç:"
+        - "{yeni_seviye}"
+        - ""
+        - "&c&lYETERSİZ BAKİYE!"
+        - "&7Gereken: &c{maliyet} ⛁"
+        - "&7Mevcut: &e{bakiye} ⛁"
+
+    # Onay Menüsü İçin Bilgi Item'ı
+    confirmation-item:
+      material: "EMERALD" # Bu, upgrade-success ile aynı olabilir.
+      name: "&6Seviye Yükseltme Onayı"
+      lore:
+        - "&7Yeni Seviye: {yeni_seviye}"
+        - "&7Maliyet: &c{maliyet} ⛁"
+        - ""
+        - "&eBu işlemi onaylıyor musun?"
+
+    # Maksimum Seviye Göstergesi
+    max-level:
+      material: "BARRIER"
+      slot: 15
+      name: "&cEn Yüksek Seviye"
+      lore:
+        - "&7Zaten ulaşabileceğin en"
+        - "&7yüksek limit seviyesindesin."
+
+    # Geri Butonu
+    back-button:
+      material: "BARRIER"
+      slot: 26
+      name: "&c« Geri"
+      lore: []
+
+
+#---------------------------------------------------
+# Faiz Ana Menüsü
+#---------------------------------------------------
+interest-main-menu:
+  title: "&8Vadeli Faiz Sistemi"
+  size: 27
+  items:
+    filler-item:
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+    list-accounts:
+      material: "BOOK"
+      slot: 11
+      name: "&a&lHesaplarımı Görüntüle"
+      lore:
+        - "&7Mevcut vadeli mevduat"
+        - "&7hesaplarını görmek için tıkla."
+    create-account:
+      material: "EMERALD"
+      slot: 15
+      name: "&b&lYeni Hesap Oluştur"
+      lore:
+        - "&7Paranı belirli bir süre"
+        - "&7faize yatırmak için tıkla."
+    back-button:
+      material: "BARRIER"
+      slot: 26
+      name: "&c« Geri"
+      lore: []
+  # Anvil GUI Ayarları
+  anvil-amount:
+    title: "&8Yatırılacak Miktar"
+    display-item: "GOLD_INGOT"
+  anvil-duration:
+    title: "&8Vade Süresi (Örn: 7d, 12h)"
+    display-item: "CLOCK"
+
+
+#---------------------------------------------------
+# Faiz Hesap Listesi Menüsü
+#---------------------------------------------------
+interest-list-menu:
+  title: "&8Vadeli Hesapların ({sayfa}/{max_sayfa})"
+  size: 27
+  items:
+    filler-item:
+      material: "BLACK_STAINED_GLASS_PANE"
+      name: " "
+
+    # Vadesi gelmemiş hesapların item'ı
+    item-active:
+      material: "IRON_INGOT"
+      name: "&eHesap ID: &6{id} &7(Aktif)"
+      lore:
+        - "&7Anapara: &a{anapara} ⛁"
+        - "&7Faiz Oranı: &e%{oran}"
+        - "&7Vade Sonu Tutar: &b{vade_sonu_tutar} ⛁"
+        - ""
+        - "&7Kalan Süre: &d{kalan_sure}"
+        - ""
+        - "&e» Detayları görmek için tıkla!"
+
+    # Vadesi dolmuş hesapların item'ı
+    item-mature:
+      material: "GOLD_BLOCK"
+      name: "&bHesap ID: &3{id} &a&l(Çekilebilir!)"
+      lore:
+        - "&7Anapara: &a{anapara} ⛁"
+        - "&7Faiz Oranı: &e%{oran}"
+        - "&7Vade Sonu Kazanç: &b{kazanc} ⛁"
+        - ""
+        - "&a» Paranı çekmek için tıkla!"
+
+    # --- Navigasyon Butonları ---
+    back-button:
+      material: "BARRIER"
+      slot: 22
+      name: "&c« Geri Dön"
+    previous-page:
+      material: "ARROW"
+      slot: 18
+      name: "&e« Önceki Sayfa"
+    next-page:
+      material: "ARROW"
+      slot: 26
+      name: "&eSonraki Sayfa »"
+
+
+#---------------------------------------------------
+# Faiz Hesap Detayları Menüsü
+#---------------------------------------------------
+interest-details-menu:
+  title: "&8Hesap Detayları &7(ID: {id})"
+  size: 27
+  items:
+    filler-item:
+      material: "CYAN_STAINED_GLASS_PANE"
+      name: " "
+    info-item:
+      material: "PAPER"
+      slot: 13
+      name: "&6Hesap Bilgileri"
+      lore:
+        - "&eAnapara: &a{anapara} ⛁"
+        - "&eFaiz Oranı: &a%{oran}"
+        - "&eToplam Kazanç: &b{kazanc} ⛁"
+        - ""
+        - "&eBaşlangıç Tarihi: &7{baslangic}"
+        - "&eVade Sonu Tarihi: &7{bitis}"
+        - "&eKalan Süre: &d{kalan_sure}"
+    # Vadesi dolmuşsa gösterilecek buton
+    claim-button:
+      material: "GOLD_BLOCK"
+      slot: 11
+      name: "&a&lParayı Çek"
+      lore:
+        - "&7Anapara ve faizi kesene"
+        - "&7aktarmak için tıkla."
+    # Vadesi dolmamışsa gösterilecek buton
+    break-button:
+      material: "REDSTONE_BLOCK"
+      slot: 11
+      name: "&c&lHesabı Boz"
+      lore:
+        - "&7Vadesi dolmamış hesabı"
+        - "&7bozmak için tıkla."
+    # Hesabı bozma onayı için
+    break-confirmation-item:
+      material: "REDSTONE_BLOCK"
+      name: "&cHesap Bozma Onayı"
+      lore:
+        - "&7Hesap ID: &e{id}"
+        - "&7Geri Alınacak Tutar: &a{anapara} ⛁"
+        - "&c(Faiz kazancı iptal edilecek!)"
+        - ""
+        - "&eEmin misiniz?"
+    back-button:
+      material: "BARRIER"
+      slot: 18
+      name: "&c« Geri Dön"
+
+
+#---------------------------------------------------
+# Genel Onay Menüsü
+#---------------------------------------------------
+confirmation-menu:
+  title: "&8İşlemi Onayla"
+  size: 27
+  items:
+    filler-item:
+      material: "BLACK_STAINED_GLASS_PANE"
+      name: " "
+
+    # Ortada gösterilecek bilgi item'ı için sadece slot numarası.
+    # Bu item'ın kendisi kod içinde dinamik olarak oluşturulur.
+    info-item-slot: 13
+
+    # Onay Butonu
+    confirm-button:
+      material: "LIME_STAINED_GLASS_PANE"
+      slot: 11
+      name: "&a&lONAYLA"
+      lore:
+        - "&7Bu işlemi yapmak için tıkla."
+
+    # İptal Butonu
+    cancel-button:
+      material: "RED_STAINED_GLASS_PANE"
+      slot: 15
+      name: "&c&lİPTAL ET"
+      lore:
+        - "&7Önceki menüye dönmek için tıkla."
+
+
+#---------------------------------------------------
+# İşlem Geçmişi Menüsü
+#---------------------------------------------------
+history-menu:
+  title: "&8İşlem Geçmişi (Sayfa {sayfa}/{max_sayfa})"
+  size: 54
+  items:
+    # Arka plan
+    filler-item:
+      material: "BLACK_STAINED_GLASS_PANE"
+      name: " "
+
+    # Geri butonu
+    back-button:
+      material: "BARRIER"
+      slot: 49 # Ortadaki slot
+      name: "&c« Ana Menüye Dön"
+
+    # Önceki sayfa butonu
+    previous-page:
+      material: "ARROW"
+      slot: 48
+      name: "&e« Önceki Sayfa"
+      lore:
+        - "&7Sayfa {onceki_sayfa}'a git."
+
+    # Sonraki sayfa butonu
+    next-page:
+      material: "ARROW"
+      slot: 50
+      name: "&eSonraki Sayfa »"
+      lore:
+        - "&7Sayfa {sonraki_sayfa}'e git."
+
+    # Her bir işlem türü için item şablonu
+    item-templates:
+      SEND:
+        material: "RED_WOOL"
+        name: "&c» Para Gönderildi"
+        lore:
+          - "&7Miktar: &e{miktar} ⛁"
+          - "&7Alıcı: &b{hedef}"
+          - ""
+          - "&8{tarih}"
+      RECEIVE:
+        material: "LIME_WOOL"
+        name: "&a» Para Alındı"
+        lore:
+          - "&7Miktar: &e{miktar} ⛁"
+          - "&7Gönderen: &b{gonderen}"
+          - ""
+          - "&8{tarih}"
+      DEPOSIT:
+        material: "GOLD_INGOT"
+        name: "&a↑ Para Yatırıldı"
+        lore:
+          - "&7Miktar: &e{miktar} ⛁"
+          - "&7Birim: &6{birim}"
+          - ""
+          - "&8{tarih}"
+      WITHDRAW:
+        material: "DIAMOND"
+        name: "&b↓ Para Çekildi"
+        lore:
+          - "&7Miktar: &e{miktar} ⛁"
+          - "&7Birim: &b{birim}"
+          - ""
+          - "&8{tarih}"
+      LEVEL_UP:
+        material: "BEACON"
+        name: "&d★ Limit Seviyesi Yükseltildi"
+        lore:
+          - "&7Maliyet: &c{maliyet} ⛁"
+          - "&7Yeni Seviye: &6{seviye}"
+          - ""
+          - "&8{tarih}"
+      INTEREST_CLAIM:
+        material: "GOLD_BLOCK"
+        name: "&6+ Vadeli Kazanç Alındı"
+        lore:
+          - "&7Tutar: &a{miktar} ⛁"
+          - "&7Hesap ID: &b{hesap_id}"
+          - ""
+          - "&8{tarih}"
+      INTEREST_BREAK:
+        material: "ORANGE_TERRACOTTA"
+        name: "&e! Vadeli Hesap Bozma İadesi"
+        lore:
+          - "&7İade Anapara: &e{miktar} ⛁"
+          - "&7Hesap ID: &b{hesap_id}"
+          - ""
+          - "&8{tarih}"
+      UNKNOWN:
+        material: "PAPER"
+        name: "&7? Bilinmeyen İşlem"
+        lore:
+          - "&7Miktar: &e{miktar} ⛁"
+          - "&7Açıklama: &f{aciklama}"
+          - ""
+          - "&8{tarih}"

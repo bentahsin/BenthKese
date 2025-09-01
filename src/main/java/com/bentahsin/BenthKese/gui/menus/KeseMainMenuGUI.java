@@ -9,6 +9,8 @@ package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuItemConfig;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
@@ -17,15 +19,20 @@ import com.bentahsin.BenthKese.services.InterestService;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class KeseMainMenuGUI extends Menu {
 
+    private static final String MENU_KEY = "main-menu";
+
+    // Bağımlılıklar artık constructor'dan doğrudan alınıyor.
     private final BenthKese plugin;
+    private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final EconomyService economyService;
     private final ConfigurationManager configManager;
@@ -35,9 +42,10 @@ public class KeseMainMenuGUI extends Menu {
     private final Economy economy = BenthKese.getEconomy();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    public KeseMainMenuGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
+    public KeseMainMenuGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.plugin = plugin;
+        this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.economyService = economyService;
         this.configManager = configManager;
@@ -48,66 +56,62 @@ public class KeseMainMenuGUI extends Menu {
 
     @Override
     public String getMenuName() {
-        return messageManager.getMessage("gui.main-menu.title");
+        return menuManager.getMenuTitle(MENU_KEY);
     }
 
     @Override
     public int getSlots() {
-        return 27;
+        return menuManager.getMenuSize(MENU_KEY);
     }
 
     @Override
     public void setMenuItems() {
         Player p = playerMenuUtility.getOwner();
 
-        // Para Yatır Butonu
-        actions.put(10, () -> new KeseYatirGUI(playerMenuUtility, plugin, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
-        inventory.setItem(10, createGuiItem(Material.GOLD_INGOT,
-                messageManager.getMessage("gui.main-menu.deposit.name"),
-                messageManager.getMessageList("gui.main-menu.deposit.lore").toArray(new String[0]))
-        );
+        // Diğer GUI'leri açarken tüm bağımlılıkları constructor'larına iletiyoruz.
+        // Bu, bu sınıfların da güncellenmesini gerektirir.
+        Runnable openDepositGUI = () -> new KeseYatirGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open();
+        Runnable openWithdrawGUI = () -> new KeseCekGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open();
+        Runnable openSendGUI = () -> new KeseGonderOyuncuGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, limitManager, configManager).open();
+        Runnable openLimitGUI = () -> new KeseLimitGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, limitManager, economyService, configManager, interestService).open();
+        Runnable openInterestGUI = () -> new InterestMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
+        Runnable openHistoryGUI = () -> new TransactionHistoryGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
 
-        // Para Çek Butonu
-        actions.put(12, () -> new KeseCekGUI(playerMenuUtility, plugin, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
-        inventory.setItem(12, createGuiItem(Material.DIAMOND,
-                messageManager.getMessage("gui.main-menu.withdraw.name"),
-                messageManager.getMessageList("gui.main-menu.withdraw.lore").toArray(new String[0]))
-        );
+        // Buton konfigürasyonlarını ve eylemlerini al
+        MenuItemConfig depositConfig = menuManager.getMenuItem(MENU_KEY, "deposit");
+        actions.put(depositConfig.getSlot(), openDepositGUI);
 
-        // Para Gönder Butonu
-        actions.put(14, () -> new KeseGonderOyuncuGUI(plugin, playerMenuUtility, messageManager, storageService, limitManager, configManager).open());
-        inventory.setItem(14, createGuiItem(Material.ENDER_PEARL,
-                messageManager.getMessage("gui.main-menu.send.name"),
-                messageManager.getMessageList("gui.main-menu.send.lore").toArray(new String[0]))
-        );
+        MenuItemConfig withdrawConfig = menuManager.getMenuItem(MENU_KEY, "withdraw");
+        actions.put(withdrawConfig.getSlot(), openWithdrawGUI);
 
-        // Limit Bilgileri Butonu
-        actions.put(16, () -> new KeseLimitGUI(playerMenuUtility, plugin, messageManager, storageService, limitManager, economyService, configManager, interestService).open());
-        inventory.setItem(16, createGuiItem(Material.BEACON,
-                messageManager.getMessage("gui.main-menu.limit.name"),
-                messageManager.getMessageList("gui.main-menu.limit.lore").toArray(new String[0]))
-        );
+        MenuItemConfig sendConfig = menuManager.getMenuItem(MENU_KEY, "send");
+        actions.put(sendConfig.getSlot(), openSendGUI);
 
-        // Faiz Sistemi Ana Menü Butonu
-        actions.put(20, () -> new InterestMainMenuGUI(playerMenuUtility, plugin, messageManager, storageService, economyService, configManager, limitManager, interestService).open());
-        inventory.setItem(20, createGuiItem(Material.KNOWLEDGE_BOOK,
-                messageManager.getMessage("gui.main-menu.interest.name"),
-                messageManager.getMessageList("gui.main-menu.interest.lore").toArray(new String[0]))
-        );
+        MenuItemConfig limitConfig = menuManager.getMenuItem(MENU_KEY, "limit");
+        actions.put(limitConfig.getSlot(), openLimitGUI);
 
-        String balance = numberFormat.format(economy.getBalance(p));
-        inventory.setItem(4, createGuiItem(Material.EMERALD,
-                messageManager.getMessage("gui.main-menu.balance.name").replace("{bakiye}", balance),
-                messageManager.getMessageList("gui.main-menu.balance.lore").toArray(new String[0]))
-        );
+        MenuItemConfig interestConfig = menuManager.getMenuItem(MENU_KEY, "interest");
+        actions.put(interestConfig.getSlot(), openInterestGUI);
 
-        actions.put(24, () -> new TransactionHistoryGUI(playerMenuUtility, plugin, messageManager, storageService, economyService, configManager, limitManager, interestService).open());
-        inventory.setItem(24, createGuiItem(Material.WRITABLE_BOOK,
-                messageManager.getMessage("gui.history-menu.main-menu-button.name"),
-                messageManager.getMessageList("gui.history-menu.main-menu-button.lore").toArray(new String[0]))
-        );
+        MenuItemConfig historyConfig = menuManager.getMenuItem(MENU_KEY, "history");
+        actions.put(historyConfig.getSlot(), openHistoryGUI);
 
+        // Placeholder'ları Hazırla
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{bakiye}", numberFormat.format(economy.getBalance(p)));
 
-        fillEmptySlots();
+        // Item'ları Envantere Yerleştir
+        inventory.setItem(depositConfig.getSlot(), createItemFromConfig(depositConfig, placeholders));
+        inventory.setItem(withdrawConfig.getSlot(), createItemFromConfig(withdrawConfig, placeholders));
+        inventory.setItem(sendConfig.getSlot(), createItemFromConfig(sendConfig, placeholders));
+        inventory.setItem(limitConfig.getSlot(), createItemFromConfig(limitConfig, placeholders));
+        inventory.setItem(interestConfig.getSlot(), createItemFromConfig(interestConfig, placeholders));
+        inventory.setItem(historyConfig.getSlot(), createItemFromConfig(historyConfig, placeholders));
+
+        MenuItemConfig balanceConfig = menuManager.getMenuItem(MENU_KEY, "balance-display");
+        inventory.setItem(balanceConfig.getSlot(), createItemFromConfig(balanceConfig, placeholders));
+
+        // Boşlukları Doldur
+        fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }
 }

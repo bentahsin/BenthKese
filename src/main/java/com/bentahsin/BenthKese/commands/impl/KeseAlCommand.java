@@ -1,15 +1,9 @@
-/*
- * BenthKese - A modern economy and limit system for Spigot.
- * Copyright (c) 2025 bentahsin.
- *
- * This project is licensed under the MIT License.
- * See the LICENSE file in the project root for full license information.
- */
 package com.bentahsin.BenthKese.commands.impl;
 
 import com.bentahsin.BenthKese.commands.ISubCommand;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -31,10 +25,10 @@ public class KeseAlCommand implements ISubCommand {
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
     public KeseAlCommand(MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService) {
-        this.storageService = storageService;
         this.messageManager = messageManager;
         this.economyService = economyService;
         this.configManager = configManager;
+        this.storageService = storageService;
     }
 
     @Override
@@ -72,10 +66,6 @@ public class KeseAlCommand implements ISubCommand {
         int withdrawnAmount = economyService.withdraw(player, requestedAmount);
         String itemBirim = configManager.getEconomyItemMaterial().name().toLowerCase().replace("_", " ");
 
-        if (withdrawnAmount > 0) {
-            storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.WITHDRAW, withdrawnAmount, itemBirim, System.currentTimeMillis()));
-        }
-
         if (withdrawnAmount == -1) {
             messageManager.sendMessage(player, "not-enough-money");
         } else if (withdrawnAmount == 0) {
@@ -85,11 +75,23 @@ public class KeseAlCommand implements ISubCommand {
             double totalCost = withdrawnAmount * (1 + taxRate);
             double taxAmount = totalCost - withdrawnAmount;
 
+            // --- İSTATİSTİK GÜNCELLEME ---
+            PlayerData playerData = storageService.getPlayerData(player.getUniqueId());
+            playerData.incrementTotalTransactions();
+            if (taxAmount > 0) {
+                playerData.addTotalTaxPaid(taxAmount);
+            }
+            storageService.savePlayerData(playerData);
+            // --- BİTİŞ ---
+
+            // Loglama
+            storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.WITHDRAW, withdrawnAmount, itemBirim, System.currentTimeMillis()));
+
             if (withdrawnAmount < requestedAmount) {
                 player.sendMessage(messageManager.getMessage("withdraw.partial-success")
-                                .replace("{istenen}", numberFormat.format(requestedAmount))
-                                .replace("{verilen}", numberFormat.format(withdrawnAmount))
-                                .replace("{birim}", itemBirim)
+                        .replace("{istenen}", numberFormat.format(requestedAmount))
+                        .replace("{verilen}", numberFormat.format(withdrawnAmount))
+                        .replace("{birim}", itemBirim)
                 );
             } else {
                 player.sendMessage(messageManager.getMessage("withdraw-success")

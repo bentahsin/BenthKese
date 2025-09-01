@@ -10,28 +10,38 @@ package com.bentahsin.BenthKese.gui.menus;
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.commands.impl.KeseGonderCommand;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
+import com.bentahsin.BenthKese.utils.AnvilGUIHelper;
+import com.bentahsin.BenthKese.utils.TextUtil;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class KeseGonderMiktarGUI {
 
     private final BenthKese plugin;
     private final PlayerMenuUtility playerMenuUtility;
+    private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final KeseGonderCommand gonderCommandLogic;
 
-    public KeseGonderMiktarGUI(BenthKese plugin, PlayerMenuUtility playerMenuUtility, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, ConfigurationManager configManager) {
+    public KeseGonderMiktarGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, ConfigurationManager configManager) {
         this.plugin = plugin;
         this.playerMenuUtility = playerMenuUtility;
+        this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.gonderCommandLogic = new KeseGonderCommand(messageManager, storageService, limitManager, configManager);
     }
@@ -39,32 +49,32 @@ public class KeseGonderMiktarGUI {
     public void open() {
         Player player = playerMenuUtility.getOwner();
         Player target = Bukkit.getPlayer(playerMenuUtility.getTargetPlayerUUID());
-        if (target == null) return; // Hedef oyuncu bir şekilde çevrimdışı olduysa
+        if (target == null) return;
 
-        new AnvilGUI.Builder()
-                .onClick((slot, stateSnapshot) -> {
-                    if (slot != AnvilGUI.Slot.OUTPUT) {
-                        return Collections.emptyList();
-                    }
-                    String text = stateSnapshot.getText();
-                    try {
-                        double amount = Double.parseDouble(text);
-                        if (amount <= 0) {
-                            return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(messageManager.getMessage("gui.anvil.invalid-amount")));
-                        }
-                        // Komut mantığını burada çağır
-                        String[] args = {target.getName(), String.valueOf(amount)};
-                        gonderCommandLogic.execute(player, args);
+        ConfigurationSection section = menuManager.getMenuSection("send-menu.amount-input");
+        if (section == null) {
+            player.sendMessage(ChatColor.RED + "Hata: send-menu.amount-input yapılandırması bulunamadı!");
+            return;
+        }
 
-                        return Collections.singletonList(AnvilGUI.ResponseAction.close());
-                    } catch (NumberFormatException e) {
-                        return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(messageManager.getMessage("gui.anvil.not-a-number")));
-                    }
-                })
-                .text(messageManager.getMessage("gui.anvil.default-amount-text"))
-                .itemLeft(new ItemStack(Material.GOLD_INGOT))
-                .title(messageManager.getMessage("gui.send-menu.amount-title").replace("{oyuncu}", target.getName()))
-                .plugin(plugin)
-                .open(player);
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{oyuncu}", target.getName());
+
+        String title = TextUtil.replacePlaceholders(section.getString("title", "&8Miktar Gir"), placeholders);
+        Material displayMaterial = Material.matchMaterial(Objects.requireNonNull(section.getString("display-item", "GOLD_INGOT")));
+        if (displayMaterial == null) displayMaterial = Material.GOLD_INGOT;
+
+        AnvilGUIHelper.createAmountInput(
+                plugin,
+                player,
+                messageManager,
+                title,
+                new ItemStack(displayMaterial),
+                (amount) -> {
+                    String[] args = {target.getName(), String.valueOf(amount)};
+                    gonderCommandLogic.execute(player, args);
+                    return Collections.singletonList(AnvilGUI.ResponseAction.close());
+                }
+        );
     }
 }

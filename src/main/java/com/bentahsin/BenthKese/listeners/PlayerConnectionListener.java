@@ -1,10 +1,3 @@
-/*
- * BenthKese - A modern economy and limit system for Spigot.
- * Copyright (c) 2025 bentahsin.
- *
- * This project is licensed under the MIT License.
- * See the LICENSE file in the project root for full license information.
- */
 package com.bentahsin.BenthKese.listeners;
 
 import com.bentahsin.BenthKese.services.storage.IStorageService;
@@ -24,6 +17,7 @@ public class PlayerConnectionListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         storageService.loadPlayer(event.getPlayer().getUniqueId());
+        storageService.updatePlayerName(event.getPlayer().getUniqueId(), event.getPlayer().getName());
     }
 
     @EventHandler

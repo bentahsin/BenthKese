@@ -366,3 +366,9 @@ general:
   no: "&cHayır"
   player-not-found: "&cOyuncu Bulunamadı"
   invalid-level: "&cGeçersiz Seviye"
+
+# ====================================================================
+# 7. Action Bar Mesajları
+# Anlık bildirimler için kullanılan metinler.
+# ====================================================================
+actionbar-limit-status: "&eLimit: &a{kalan} &7/ &6{toplam}"

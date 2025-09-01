@@ -1,10 +1,3 @@
-/*
- * BenthKese - A modern economy and limit system for Spigot.
- * Copyright (c) 2025 bentahsin.
- *
- * This project is licensed under the MIT License.
- * See the LICENSE file in the project root for full license information.
- */
 package com.bentahsin.BenthKese.commands.impl;
 
 import com.bentahsin.BenthKese.BenthKese;
@@ -17,6 +10,8 @@ import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
+import com.bentahsin.BenthKese.utils.ActionBarUtil; // YENİ IMPORT
+import com.bentahsin.BenthKese.utils.TextUtil; // YENİ IMPORT
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
@@ -25,10 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -98,7 +90,6 @@ public class KeseGonderCommand implements ISubCommand {
             totalCost = amount + taxAmount;
         }
 
-        // --- Gönderen Kontrolleri ---
         PlayerData senderData = storageService.getPlayerData(senderPlayer.getUniqueId());
         if (System.currentTimeMillis() - senderData.getLastResetTime() > TimeUnit.DAYS.toMillis(1)) {
             senderData.resetDailyLimits();
@@ -114,7 +105,6 @@ public class KeseGonderCommand implements ISubCommand {
             return;
         }
 
-        // --- Alıcı Kontrolleri ---
         PlayerData targetData = storageService.getPlayerData(targetPlayer.getUniqueId());
         if (System.currentTimeMillis() - targetData.getLastResetTime() > TimeUnit.DAYS.toMillis(1)) {
             targetData.resetDailyLimits();
@@ -125,18 +115,23 @@ public class KeseGonderCommand implements ISubCommand {
             return;
         }
 
-        // --- Vault İşlemi ---
         EconomyResponse response = economy.withdrawPlayer(senderPlayer, totalCost);
         if (response.transactionSuccess()) {
             economy.depositPlayer(targetPlayer, amount);
 
-            // Verileri güncelle
             senderData.addDailySent(amount);
-            storageService.savePlayerData(senderData);
             targetData.addDailyReceived(amount);
+
+            // İstatistik Güncelleme
+            senderData.incrementTotalTransactions();
+            senderData.addTotalSent(amount);
+            if(taxAmount > 0) senderData.addTotalTaxPaid(taxAmount);
+            storageService.savePlayerData(senderData);
+
+            targetData.incrementTotalTransactions();
             storageService.savePlayerData(targetData);
 
-            // İşlem kayıtları
+            // Loglama
             long timestamp = System.currentTimeMillis();
             storageService.logTransaction(new TransactionData(senderPlayer.getUniqueId(), TransactionType.SEND, amount, targetPlayer.getName(), timestamp));
             storageService.logTransaction(new TransactionData(targetPlayer.getUniqueId(), TransactionType.RECEIVE, amount, senderPlayer.getName(), timestamp));
@@ -151,8 +146,37 @@ public class KeseGonderCommand implements ISubCommand {
             targetPlayer.sendMessage(messageManager.getMessage("send-money.success-receiver")
                     .replace("{gonderen}", senderPlayer.getName())
                     .replace("{miktar}", numberFormat.format(amount)));
+
+            // --- YENİ: ACTION BAR BİLDİRİMLERİ ---
+            sendLimitActionBars(senderPlayer, senderData, senderLevel, targetPlayer, targetData, targetLevel);
+
         } else {
             senderPlayer.sendMessage(messageManager.getMessage("level-up.error").replace("{hata}", response.errorMessage));
+        }
+    }
+
+    /**
+     * Göndericiye ve alıcıya güncel limit durumlarını action bar ile bildirir.
+     */
+    private void sendLimitActionBars(Player sender, PlayerData senderData, LimitLevel senderLevel, Player receiver, PlayerData receiverData, LimitLevel receiverLevel) {
+        String messageTemplate = messageManager.getMessage("actionbar-limit-status");
+
+        // Gönderici için Action Bar
+        if (senderLevel.getSendLimit() != -1) {
+            Map<String, String> senderPlaceholders = new HashMap<>();
+            double kalan = senderLevel.getSendLimit() - senderData.getDailySent();
+            senderPlaceholders.put("{kalan}", numberFormat.format(Math.max(0, kalan)));
+            senderPlaceholders.put("{toplam}", numberFormat.format(senderLevel.getSendLimit()));
+            ActionBarUtil.sendActionBar(sender, TextUtil.replacePlaceholders(messageTemplate, senderPlaceholders));
+        }
+
+        // Alıcı için Action Bar
+        if (receiverLevel.getReceiveLimit() != -1) {
+            Map<String, String> receiverPlaceholders = new HashMap<>();
+            double kalan = receiverLevel.getReceiveLimit() - receiverData.getDailyReceived();
+            receiverPlaceholders.put("{kalan}", numberFormat.format(Math.max(0, kalan)));
+            receiverPlaceholders.put("{toplam}", numberFormat.format(receiverLevel.getReceiveLimit()));
+            ActionBarUtil.sendActionBar(receiver, TextUtil.replacePlaceholders(messageTemplate, receiverPlaceholders));
         }
     }
 

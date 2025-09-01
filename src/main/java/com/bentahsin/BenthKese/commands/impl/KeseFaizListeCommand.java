@@ -10,6 +10,7 @@ package com.bentahsin.BenthKese.commands.impl;
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.commands.ISubCommand;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.menus.InterestAccountListGUI;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -31,8 +32,9 @@ public class KeseFaizListeCommand implements ISubCommand {
     private final ConfigurationManager configManager;
     private final LimitManager limitManager;
     private final InterestService interestService;
+    private final MenuManager menuManager;
 
-    public KeseFaizListeCommand(BenthKese plugin, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService) {
+    public KeseFaizListeCommand(BenthKese plugin, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService, MenuManager menuManager) {
         this.plugin = plugin;
         this.messageManager = messageManager;
         this.storageService = storageService;
@@ -40,6 +42,7 @@ public class KeseFaizListeCommand implements ISubCommand {
         this.configManager = configManager;
         this.limitManager = limitManager;
         this.interestService = interestService;
+        this.menuManager = menuManager;
     }
 
     @Override
@@ -63,6 +66,7 @@ public class KeseFaizListeCommand implements ISubCommand {
         new InterestAccountListGUI(
                 plugin.getPlayerMenuUtility(player),
                 plugin,
+                menuManager,
                 messageManager,
                 storageService,
                 economyService,

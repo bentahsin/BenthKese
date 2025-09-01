@@ -102,4 +102,12 @@ public class InterestAccount {
     public double getFinalAmount() {
         return principal * (1 + interestRate);
     }
+
+    /**
+     * Hesabın vadesinin dolup dolmadığını kontrol eder.
+     * @return Vade dolmamışsa (aktifse) true, dolmuşsa false döner.
+     */
+    public boolean isActive() {
+        return System.currentTimeMillis() < this.endTime;
+    }
 }

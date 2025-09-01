@@ -9,6 +9,8 @@ package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuItemConfig;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.gui.Menu;
@@ -18,30 +20,34 @@ import com.bentahsin.BenthKese.services.EconomyService;
 import com.bentahsin.BenthKese.services.InterestService;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
 
+    private static final String MENU_KEY = "history-menu";
+
+    // Bağımlılıklar
     private final BenthKese plugin;
+    private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final IStorageService storageService;
     private final EconomyService economyService;
     private final ConfigurationManager configManager;
     private final LimitManager limitManager;
     private final InterestService interestService;
+
+    // Formatlayıcılar
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
-    public TransactionHistoryGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService) {
+    public TransactionHistoryGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.plugin = plugin;
+        this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.storageService = storageService;
         this.economyService = economyService;
@@ -52,66 +58,65 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
 
     @Override
     public String getMenuName() {
-        return messageManager.getMessage("gui.history-menu.title");
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{sayfa}", String.valueOf(page + 1));
+        placeholders.put("{max_sayfa}", String.valueOf(Math.max(1, getMaxPages())));
+
+        // MenuManager'a placeholder desteği eklenmesi gerekebilir, şimdilik manuel yapıyoruz.
+        String titleTemplate = menuManager.getMenuTitle(MENU_KEY);
+        return titleTemplate.replace("{sayfa}", String.valueOf(page + 1))
+                .replace("{max_sayfa}", String.valueOf(Math.max(1, getMaxPages())));
     }
 
     @Override
     public int getSlots() {
-        return 54; // 6 sıra, daha fazla item için
+        return menuManager.getMenuSize(MENU_KEY);
     }
 
     @Override
     public List<TransactionData> getAllItems() {
-        // Son 50 işlemi getir
-        return storageService.getTransactions(playerMenuUtility.getOwner().getUniqueId(), 50);
+        return storageService.getTransactions(playerMenuUtility.getOwner().getUniqueId(), 100);
     }
 
     @Override
     public ItemStack getItemStack(TransactionData transaction) {
-        Material material;
-        String name;
-        String formattedAmount = numberFormat.format(transaction.getAmount());
+        // İşlem türüne göre uygun item şablonunu menus.yml'den al
+        String itemKey = transaction.getType().name();
+        MenuItemConfig itemConfig = menuManager.getMenuItem(MENU_KEY, "item-templates." + itemKey);
+
+        // Eğer belirli bir tür için tanım yoksa, bilinmeyen (UNKNOWN) şablonunu kullan
+        if (itemConfig.getMaterial() == org.bukkit.Material.BARRIER) { // getMenuItem hata durumunda BARRIER döner
+            itemConfig = menuManager.getMenuItem(MENU_KEY, "item-templates.UNKNOWN");
+        }
+
+        // Placeholder'ları doldur
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{miktar}", numberFormat.format(transaction.getAmount()));
+        placeholders.put("{tarih}", dateFormat.format(new Date(transaction.getTimestamp())));
+        placeholders.put("{aciklama}", transaction.getDescription());
 
         switch (transaction.getType()) {
             case SEND:
-                material = Material.RED_WOOL;
-                name = messageManager.getMessage("gui.history-menu.format.send")
-                        .replace("{miktar}", formattedAmount)
-                        .replace("{hedef}", transaction.getDescription());
+                placeholders.put("{hedef}", transaction.getDescription());
                 break;
             case RECEIVE:
-                material = Material.LIME_WOOL;
-                name = messageManager.getMessage("gui.history-menu.format.receive")
-                        .replace("{miktar}", formattedAmount)
-                        .replace("{gonderen}", transaction.getDescription());
+                placeholders.put("{gonderen}", transaction.getDescription());
                 break;
             case DEPOSIT:
-                material = Material.GOLD_INGOT;
-                name = messageManager.getMessage("gui.history-menu.format.deposit")
-                        .replace("{miktar}", formattedAmount)
-                        .replace("{birim}", transaction.getDescription());
-                break;
             case WITHDRAW:
-                material = Material.DIAMOND;
-                name = messageManager.getMessage("gui.history-menu.format.withdraw")
-                        .replace("{miktar}", formattedAmount)
-                        .replace("{birim}", transaction.getDescription());
+                placeholders.put("{birim}", transaction.getDescription());
                 break;
             case LEVEL_UP:
-                material = Material.BEACON;
-                name = messageManager.getMessage("gui.history-menu.format.level-up")
-                        .replace("{maliyet}", formattedAmount)
-                        .replace("{seviye}", transaction.getDescription());
+                placeholders.put("{maliyet}", numberFormat.format(transaction.getAmount()));
+                placeholders.put("{seviye}", transaction.getDescription());
                 break;
-            default:
-                material = Material.PAPER;
-                name = "Bilinmeyen İşlem";
+            case INTEREST_CLAIM:
+            case INTEREST_BREAK:
+                placeholders.put("{hesap_id}", transaction.getDescription());
+                break;
         }
 
-        String lore = messageManager.getMessage("gui.history-menu.format.lore")
-                .replace("{tarih}", dateFormat.format(new Date(transaction.getTimestamp())));
-
-        return createGuiItem(material, name, lore);
+        return createItemFromConfig(itemConfig, placeholders);
     }
 
     @Override
@@ -121,6 +126,28 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
 
     @Override
     public Menu getNavigationBackMenu() {
-        return new KeseMainMenuGUI(playerMenuUtility, plugin, messageManager, economyService, configManager, storageService, limitManager, interestService);
+        return new KeseMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService);
+    }
+
+    // --- PaginatedMenu için Gerekli Yapılandırmaları Sağlayan Metotlar ---
+
+    @Override
+    protected MenuItemConfig getBackButtonConfig() {
+        return menuManager.getMenuItem(MENU_KEY, "back-button");
+    }
+
+    @Override
+    protected MenuItemConfig getPreviousPageButtonConfig() {
+        return menuManager.getMenuItem(MENU_KEY, "previous-page");
+    }
+
+    @Override
+    protected MenuItemConfig getNextPageButtonConfig() {
+        return menuManager.getMenuItem(MENU_KEY, "next-page");
+    }
+
+    @Override
+    protected MenuItemConfig getFillerItemConfig() {
+        return menuManager.getMenuItem(MENU_KEY, "filler-item");
     }
 }

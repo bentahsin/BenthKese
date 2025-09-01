@@ -9,6 +9,7 @@ package com.bentahsin.BenthKese.commands;
 
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.menus.KeseMainMenuGUI;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -33,9 +34,11 @@ public class CommandManager implements CommandExecutor, TabCompleter {
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final InterestService interestService;
+    private final MenuManager menuManager;
     private final Map<String, ISubCommand> subCommands = new HashMap<>();
 
-    public CommandManager(MessageManager messageManager, BenthKese plugin, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
+    public CommandManager(MessageManager messageManager, BenthKese plugin, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService, MenuManager menuManager) {
+        this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.economyService = economyService;
         this.configurationManager = configManager;
@@ -54,7 +57,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         if (args.length == 0) {
             if (sender instanceof Player) {
                 Player p = (Player) sender;
-                new KeseMainMenuGUI(plugin.getPlayerMenuUtility(p), plugin, messageManager, economyService, configurationManager, storageService, limitManager, interestService).open();
+                new KeseMainMenuGUI(plugin.getPlayerMenuUtility(p), plugin, menuManager, messageManager, economyService, configurationManager, storageService, limitManager, interestService).open();
             } else {
                 subCommands.get("help").execute(sender, new String[0]);
             }

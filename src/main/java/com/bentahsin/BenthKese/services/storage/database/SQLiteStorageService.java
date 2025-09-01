@@ -8,15 +8,17 @@
 package com.bentahsin.BenthKese.services.storage.database;
 
 import com.bentahsin.BenthKese.BenthKese;
+import com.bentahsin.BenthKese.services.LimitManager;
 
 public class SQLiteStorageService extends AbstractSqlStorageService {
 
-    public SQLiteStorageService(BenthKese plugin, DatabaseManager databaseManager) {
-        super(plugin, databaseManager);
+    public SQLiteStorageService(BenthKese plugin, DatabaseManager databaseManager, LimitManager limitManager) {
+        super(plugin, databaseManager, limitManager);
     }
 
     @Override
     protected String getUpsertPlayerStatement() {
-        return "INSERT OR REPLACE INTO benthkese_playerdata (uuid, limit_level, daily_sent, daily_received, last_reset_time) VALUES (?, ?, ?, ?, ?);";
+        return "INSERT OR REPLACE INTO benthkese_playerdata (uuid, limit_level, daily_sent, daily_received, last_reset_time, balance, total_transactions, total_sent, total_tax_paid) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
     }
 }

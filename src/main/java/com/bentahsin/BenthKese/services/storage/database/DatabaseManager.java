@@ -95,9 +95,27 @@ public class DatabaseManager {
                     "limit_level INT NOT NULL DEFAULT 1," +
                     "daily_sent DOUBLE NOT NULL DEFAULT 0.0," +
                     "daily_received DOUBLE NOT NULL DEFAULT 0.0," +
-                    "last_reset_time BIGINT NOT NULL DEFAULT 0" +
+                    "last_reset_time BIGINT NOT NULL DEFAULT 0," +
+                    "balance DOUBLE NOT NULL DEFAULT 0.0," +
+                    "total_transactions INT NOT NULL DEFAULT 0," +
+                    "total_sent DOUBLE NOT NULL DEFAULT 0.0," +
+                    "total_tax_paid DOUBLE NOT NULL DEFAULT 0.0" +
                     ");";
             stmt.execute(createPlayerTableSQL);
+
+            if (isMySql()) {
+                try {
+                    stmt.execute("ALTER TABLE benthkese_playerdata ADD COLUMN balance DOUBLE NOT NULL DEFAULT 0.0;");
+                } catch (SQLException ignored) {
+                    // Sütun zaten varsa hata verir, görmezden gel.
+                }
+            }
+
+            if (isMySql()) {
+                addColumnIfNotExists(stmt, "benthkese_playerdata", "total_transactions", "INT NOT NULL DEFAULT 0");
+                addColumnIfNotExists(stmt, "benthkese_playerdata", "total_sent", "DOUBLE NOT NULL DEFAULT 0.0");
+                addColumnIfNotExists(stmt, "benthkese_playerdata", "total_tax_paid", "DOUBLE NOT NULL DEFAULT 0.0");
+            }
 
             String createInterestTableSQL = "CREATE TABLE IF NOT EXISTS benthkese_interest_accounts (" +
                     (isMySql() ? "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," : "id INTEGER PRIMARY KEY AUTOINCREMENT,") +
@@ -126,12 +144,26 @@ public class DatabaseManager {
             String createTransactionIndexSQL = "CREATE INDEX IF NOT EXISTS idx_benthkese_transactions_uuid_time ON benthkese_transactions(player_uuid, timestamp);";
             stmt.execute(createTransactionIndexSQL);
 
+            String createNameTableSQL = "CREATE TABLE IF NOT EXISTS benthkese_playernames (" +
+                    "uuid VARCHAR(36) NOT NULL PRIMARY KEY," +
+                    "last_known_name VARCHAR(16) NOT NULL" +
+                    ");";
+            stmt.execute(createNameTableSQL);
+
             plugin.getLogger().info("Veritabanı tabloları başarıyla oluşturuldu/kontrol edildi.");
         }
     }
 
     private boolean isMySql() {
         return hikari != null && hikari.getJdbcUrl() != null && hikari.getJdbcUrl().contains("mysql");
+    }
+
+    private void addColumnIfNotExists(Statement stmt, String tableName, String columnName, String columnDefinition) {
+        try {
+            stmt.execute("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition + ";");
+        } catch (SQLException ignored) {
+            // Sütun zaten varsa hata verir, görmezden gel.
+        }
     }
 
     public Connection getConnection() throws SQLException {

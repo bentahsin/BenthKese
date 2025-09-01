@@ -9,6 +9,8 @@ package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.MenuItemConfig;
+import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.InterestAccount;
 import com.bentahsin.BenthKese.gui.Menu;
@@ -17,33 +19,41 @@ import com.bentahsin.BenthKese.services.EconomyService;
 import com.bentahsin.BenthKese.services.InterestService;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
-import com.bentahsin.BenthKese.utils.TimeUtil;
-import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class InterestAccountDetailsGUI extends Menu {
 
+    private static final String MENU_KEY = "interest-details-menu";
+
+    // Bağımlılıklar
     private final BenthKese plugin;
+    private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final InterestService interestService;
     private final IStorageService storageService;
     private final EconomyService economyService;
     private final ConfigurationManager configManager;
     private final LimitManager limitManager;
-    private final InterestAccount account; // Görüntülenen hesap
+
+    // Görüntülenen Hesap
+    private final InterestAccount account;
+
+    // Formatlayıcılar
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
-    public InterestAccountDetailsGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MessageManager messageManager, InterestService interestService, InterestAccount account, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager) {
+    public InterestAccountDetailsGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MenuManager menuManager, MessageManager messageManager, InterestService interestService, InterestAccount account, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager) {
         super(playerMenuUtility);
         this.plugin = plugin;
+        this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.interestService = interestService;
         this.account = account;
@@ -55,77 +65,87 @@ public class InterestAccountDetailsGUI extends Menu {
 
     @Override
     public String getMenuName() {
-        return messageManager.getMessage("gui.interest-details.title").replace("{id}", String.valueOf(account.getAccountId()));
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{id}", String.valueOf(account.getAccountId()));
+        return menuManager.getMenuTitle(MENU_KEY, placeholders);
     }
 
     @Override
     public int getSlots() {
-        return 27; // 3 sıra
+        return menuManager.getMenuSize(MENU_KEY);
     }
 
     @Override
     public void setMenuItems() {
         Player player = playerMenuUtility.getOwner();
+        boolean isMature = System.currentTimeMillis() >= account.getEndTime();
 
         // --- Bilgi Paneli ---
+        MenuItemConfig infoConfig = menuManager.getMenuItem(MENU_KEY, "info-item");
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("{id}", String.valueOf(account.getAccountId()));
+        placeholders.put("{anapara}", numberFormat.format(account.getPrincipal()));
+        placeholders.put("{oran}", numberFormat.format(account.getInterestRate() * 100));
+        placeholders.put("{kazanc}", numberFormat.format(account.getFinalAmount()));
+        placeholders.put("{baslangic}", dateFormat.format(new Date(account.getStartTime())));
+        placeholders.put("{bitis}", dateFormat.format(new Date(account.getEndTime())));
+        placeholders.put("{kalan_sure}", com.bentahsin.BenthKese.utils.TimeUtil.formatDuration(account.getEndTime() - System.currentTimeMillis()));
+        inventory.setItem(infoConfig.getSlot(), createItemFromConfig(infoConfig, placeholders));
 
-        inventory.setItem(13, createGuiItem(Material.PAPER,
-                messageManager.getMessage("gui.interest-details.info-item.name"),
-                messageManager.getMessageList("gui.interest-details.info-item.lore").stream()
-                        .map(line -> line
-                                .replace("{anapara}", numberFormat.format(account.getPrincipal()))
-                                .replace("{oran}", String.format("%.2f", account.getInterestRate() * 100))
-                                .replace("{kazanc}", numberFormat.format(account.getFinalAmount()))
-                                .replace("{baslangic}", dateFormat.format(new Date(account.getStartTime())))
-                                .replace("{bitis}", dateFormat.format(new Date(account.getEndTime())))
-                                .replace("{kalan_sure}", TimeUtil.formatDuration(account.getEndTime() - System.currentTimeMillis()))).toArray(String[]::new)));
 
-        // --- İşlem Butonu (Dinamik) ---
-        long remainingMillis = account.getEndTime() - System.currentTimeMillis();
-        boolean isMature = remainingMillis <= 0;
-
+        // --- Aksiyon Butonları ---
         if (isMature) {
-            // Vadesi dolmuş, parayı çekme butonu
-            actions.put(11, () -> {
+            // Vadesi dolmuşsa: Parayı Çek Butonu
+            MenuItemConfig claimConfig = menuManager.getMenuItem(MENU_KEY, "claim-button");
+            actions.put(claimConfig.getSlot(), () -> {
                 interestService.processAccountAction(player, account.getAccountId());
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
-                // İşlem bitince liste menüsüne geri dön
-                new InterestAccountListGUI(playerMenuUtility, plugin, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
+                // İşlem sonrası YENİDEN OLUŞTURULMUŞ listeye dön
+                openListMenu();
             });
-            inventory.setItem(11, createGuiItem(Material.GOLD_BLOCK,
-                    messageManager.getMessage("gui.interest-details.claim-button.name"),
-                    messageManager.getMessageList("gui.interest-details.claim-button.lore").toArray(new String[0]))
-            );
-        } else {
-            actions.put(11, () -> {
-                ItemStack infoItem = createGuiItem(Material.REDSTONE_BLOCK,
-                        messageManager.getMessage("gui.interest-details.break-confirmation-item.name"),
-                        messageManager.getMessageList("gui.interest-details.break-confirmation-item.lore").stream()
-                                .map(line -> line.replace("{id}", String.valueOf(account.getAccountId()))
-                                        .replace("{anapara}", numberFormat.format(account.getPrincipal())))
-                                .toArray(String[]::new)
-                );
+            inventory.setItem(claimConfig.getSlot(), createItemFromConfig(claimConfig, placeholders));
 
+        } else {
+            // Vadesi dolmamışsa: Hesabı Boz Butonu
+            MenuItemConfig breakConfig = menuManager.getMenuItem(MENU_KEY, "break-button");
+            actions.put(breakConfig.getSlot(), () -> {
+                // Onay menüsünü aç
+                MenuItemConfig confirmItemConfig = menuManager.getMenuItem(MENU_KEY, "break-confirmation-item");
+                ItemStack infoItem = createItemFromConfig(confirmItemConfig, placeholders);
+
+                // *** ÇÖZÜM BURADA: Onay veya iptal sonrası YENİ BİR LİSTE MENÜSÜ açılır. ***
                 Runnable onConfirm = () -> {
                     interestService.processAccountAction(player, account.getAccountId());
-                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
-                    new InterestAccountListGUI(playerMenuUtility, plugin, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
+                    // İşlem sonrası YENİDEN OLUŞTURULMUŞ listeye dön
+                    openListMenu();
                 };
 
-                Runnable onCancel = this::open;
+                // Oyuncu iptal ederse de YENİDEN OLUŞTURULMUŞ listeye dönsün.
+                Runnable onCancel = this::openListMenu;
 
-                new ConfirmationGUI(playerMenuUtility, messageManager.getMessage("gui.confirmation.title"), infoItem, onConfirm, onCancel, messageManager).open();
+                new ConfirmationGUI(playerMenuUtility, menuManager, infoItem, onConfirm, onCancel).open();
             });
-            inventory.setItem(11, createGuiItem(Material.REDSTONE_BLOCK,
-                    messageManager.getMessage("gui.interest-details.break-button.name"),
-                    messageManager.getMessageList("gui.interest-details.break-button.lore").toArray(new String[0]))
-            );
+            inventory.setItem(breakConfig.getSlot(), createItemFromConfig(breakConfig, placeholders));
         }
 
-        // Geri butonu (Liste menüsüne döner)
-        new InterestAccountListGUI(playerMenuUtility, plugin, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
-        inventory.setItem(26, createGuiItem(Material.BARRIER, messageManager.getMessage("gui.general.back-button")));
+        // --- Geri Butonu ---
+        MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
+        // Geri butonu her zaman YENİDEN OLUŞTURULMUŞ listeye döner.
+        actions.put(backConfig.getSlot(), this::openListMenu);
+        inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, new HashMap<>()));
 
-        fillEmptySlots();
+
+        // Boşlukları doldur
+        fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
+    }
+
+    /**
+     * InterestAccountListGUI menüsünü yeniden oluşturarak açar ve listenin yenilenmesini sağlar.
+     */
+    private void openListMenu() {
+        new InterestAccountListGUI(
+                playerMenuUtility, plugin, menuManager,
+                messageManager, storageService, economyService,
+                configManager, limitManager, interestService
+        ).open();
     }
 }
