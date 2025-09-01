@@ -12,7 +12,6 @@ import com.bentahsin.BenthKese.configuration.ConfigurationManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.LimitLevel;
 import com.bentahsin.BenthKese.data.PlayerData;
-import com.bentahsin.BenthKese.data.TopPlayerEntry;
 import com.bentahsin.BenthKese.expansion.placeholders.*;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -187,24 +185,6 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
             return level != null ? level.getName() : messageManager.getMessage("general.invalid-level");
         } catch (NumberFormatException e) {
             return messageManager.getMessage("general.invalid-level");
-        }
-    }
-
-    private String handleTopLevel(String params, boolean isName) {
-        try {
-            String rankStr = params.substring(params.lastIndexOf('_') + 1);
-            int rank = Integer.parseInt(rankStr);
-            if (rank < 1 || rank > 10) return "-";
-
-            // Bu kısım cache'lenmeli
-            List<TopPlayerEntry> topPlayers = storageService.getTopPlayersByLimitLevel(10);
-            if (rank > topPlayers.size()) return "-";
-
-            TopPlayerEntry entry = topPlayers.get(rank - 1);
-            return entry.getPlayerName();
-
-        } catch (Exception e) {
-            return "-";
         }
     }
 }

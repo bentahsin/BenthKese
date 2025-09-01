@@ -1,3 +1,0 @@
-2 - ) Vadeli hesap listesinde lore'daki kalan sürenin dinamik olarak güncellenmesi.
-    - Şu an sadece sayfayı yenileyince güncelleniyor.
-    - Her dakika güncellenmesi lazım.

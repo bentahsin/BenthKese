@@ -56,16 +56,12 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
         this.interestService = interestService;
     }
 
-    @Override
     public String getMenuName() {
         Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("{sayfa}", String.valueOf(page + 1));
-        placeholders.put("{max_sayfa}", String.valueOf(Math.max(1, getMaxPages())));
+        placeholders.put("sayfa", String.valueOf(page + 1));
+        placeholders.put("max_sayfa", String.valueOf(Math.max(1, getMaxPages())));
 
-        // MenuManager'a placeholder desteği eklenmesi gerekebilir, şimdilik manuel yapıyoruz.
-        String titleTemplate = menuManager.getMenuTitle(MENU_KEY);
-        return titleTemplate.replace("{sayfa}", String.valueOf(page + 1))
-                .replace("{max_sayfa}", String.valueOf(Math.max(1, getMaxPages())));
+        return menuManager.getMenuTitle(MENU_KEY, placeholders);
     }
 
     @Override
