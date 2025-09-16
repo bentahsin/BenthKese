@@ -30,7 +30,6 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
 
     private static final String MENU_KEY = "history-menu";
 
-    // Bağımlılıklar
     private final BenthKese plugin;
     private final MenuManager menuManager;
     private final MessageManager messageManager;
@@ -40,7 +39,6 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
     private final LimitManager limitManager;
     private final InterestService interestService;
 
-    // Formatlayıcılar
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
@@ -76,16 +74,13 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
 
     @Override
     public ItemStack getItemStack(TransactionData transaction) {
-        // İşlem türüne göre uygun item şablonunu menus.yml'den al
         String itemKey = transaction.getType().name();
         MenuItemConfig itemConfig = menuManager.getMenuItem(MENU_KEY, "item-templates." + itemKey);
 
-        // Eğer belirli bir tür için tanım yoksa, bilinmeyen (UNKNOWN) şablonunu kullan
-        if (itemConfig.getMaterial() == org.bukkit.Material.BARRIER) { // getMenuItem hata durumunda BARRIER döner
+        if (itemConfig.getMaterial() == org.bukkit.Material.BARRIER) {
             itemConfig = menuManager.getMenuItem(MENU_KEY, "item-templates.UNKNOWN");
         }
 
-        // Placeholder'ları doldur
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("{miktar}", numberFormat.format(transaction.getAmount()));
         placeholders.put("{tarih}", dateFormat.format(new Date(transaction.getTimestamp())));
@@ -117,7 +112,6 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
 
     @Override
     public void onItemClick(TransactionData item) {
-        // Tıklayınca bir şey yapmasına gerek yok
     }
 
     @Override
@@ -125,7 +119,6 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
         return new KeseMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService);
     }
 
-    // --- PaginatedMenu için Gerekli Yapılandırmaları Sağlayan Metotlar ---
 
     @Override
     protected MenuItemConfig getBackButtonConfig() {

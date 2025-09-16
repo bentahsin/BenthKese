@@ -7,19 +7,17 @@ package com.bentahsin.BenthKese.data;
 public class TopPlayerEntry {
     private final String playerName;
     private final double value;
-    private final String stringValue; // Seviye adı gibi metin tabanlı değerler için
+    private final String stringValue;
 
-    // Sayısal değerler için (bakiye)
     public TopPlayerEntry(String playerName, double value) {
         this.playerName = playerName;
         this.value = value;
         this.stringValue = null;
     }
 
-    // Metin tabanlı değerler için (seviye adı)
     public TopPlayerEntry(String playerName, String stringValue) {
         this.playerName = playerName;
-        this.value = 0; // Kullanılmıyor
+        this.value = 0;
         this.stringValue = stringValue;
     }
 

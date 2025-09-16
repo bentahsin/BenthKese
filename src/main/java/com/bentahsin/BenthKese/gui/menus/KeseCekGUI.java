@@ -66,24 +66,19 @@ public class KeseCekGUI extends Menu {
 
     @Override
     public void setMenuItems() {
-        // Buton konfigürasyonlarını menus.yml'den al
         MenuItemConfig anvilConfig = menuManager.getMenuItem(MENU_KEY, "anvil-input");
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
 
-        // Eylemleri ata
         actions.put(anvilConfig.getSlot(), this::openWithdrawAnvil);
         actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
 
-        // Butonları envantere yerleştir
         inventory.setItem(anvilConfig.getSlot(), createItemFromConfig(anvilConfig, Collections.emptyMap()));
         inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
 
-        // Hızlı çekme butonlarını oluştur
         addWithdrawButton(13, 16);
         addWithdrawButton(14, 32);
         addWithdrawButton(15, 64);
 
-        // Boşlukları doldur
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }
 

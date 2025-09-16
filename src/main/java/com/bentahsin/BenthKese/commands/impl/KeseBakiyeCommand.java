@@ -43,7 +43,6 @@ public class KeseBakiyeCommand implements ISubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        // Durum 1: /kese bakiye (Kendi bakiyesine bakar)
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Konsolun bakiyesi yoktur. Lütfen bir oyuncu adı belirtin.");
@@ -56,7 +55,6 @@ public class KeseBakiyeCommand implements ISubCommand {
             return;
         }
 
-        // Durum 2: /kese bakiye <oyuncu> (Başkasının bakiyesine bakar)
         if (!sender.hasPermission("benthkese.command.bakiye.others")) {
             messageManager.sendMessage(sender, "no-permission");
             return;
@@ -89,7 +87,7 @@ public class KeseBakiyeCommand implements ISubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1 && sender.hasPermission("benthkese.command.bakiye.others")) {
-            return null; // Sunucunun varsayılan oyuncu adı tamamlama mekanizmasını kullan
+            return null;
         }
         return Collections.emptyList();
     }

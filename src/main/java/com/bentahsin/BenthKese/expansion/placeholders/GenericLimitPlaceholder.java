@@ -30,7 +30,6 @@ public class GenericLimitPlaceholder implements IPlaceholder {
         this.storageService = storage;
         this.limitManager = limits;
         this.infiniteText = infinite;
-        // Sayıları formatlamak için standart bir formatlayıcı kullanalım
         NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
         this.formatter = numberFormat::format;
         this.valueExtractor = extractor;

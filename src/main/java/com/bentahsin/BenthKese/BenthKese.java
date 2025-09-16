@@ -107,10 +107,10 @@ public final class BenthKese extends JavaPlugin {
     }
 
     public void reloadPlugin() {
-        this.configurationManager.loadConfig(); // config.yml
-        this.messageManager.loadMessages();     // messages.yml
-        this.limitManager.loadLimits();         // limits.yml
-        this.menuManager.loadMenus();           // menus.yml
+        this.configurationManager.loadConfig();
+        this.messageManager.loadMessages();
+        this.limitManager.loadLimits();
+        this.menuManager.loadMenus();
         getLogger().info("Konfigürasyon dosyaları yeniden yüklendi.");
     }
 
@@ -186,7 +186,6 @@ public final class BenthKese extends JavaPlugin {
     private void registerAdminCommands() {
         AdminCommandManager adminCommandManager = new AdminCommandManager(messageManager);
 
-        // Yönetici alt komutlarını kaydet
         adminCommandManager.registerCommand(new AdminReloadCommand(this, messageManager));
         adminCommandManager.registerCommand(new AdminLimitCommand(storageService, messageManager, limitManager));
         adminCommandManager.registerCommand(new AdminBakiyeCommand(messageManager));

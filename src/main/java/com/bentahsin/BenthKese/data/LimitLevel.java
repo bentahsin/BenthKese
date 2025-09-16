@@ -7,7 +7,6 @@
  */
 package com.bentahsin.BenthKese.data;
 
-// Bir limit seviyesinin özelliklerini tutan sınıf.
 public class LimitLevel {
 
     private final int level;
@@ -24,7 +23,6 @@ public class LimitLevel {
         this.receiveLimit = receiveLimit;
     }
 
-    // Getter'lar
     public int getLevel() { return level; }
     public String getName() { return name; }
     public double getCost() { return cost; }

@@ -21,7 +21,6 @@ public class EkonomiItemAdiPlaceholder implements IPlaceholder {
 
     @Override
     public String getValue(OfflinePlayer player) {
-        // GOLD_INGOT -> Gold Ingot
         String itemName = configManager.getEconomyItemMaterial().name().replace('_', ' ');
         return WordUtils.capitalizeFully(itemName);
     }

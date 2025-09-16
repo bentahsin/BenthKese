@@ -9,15 +9,25 @@ package com.bentahsin.BenthKese.configuration;
 
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.utils.TimeUtil;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
 
 public class ConfigurationManager {
 
     private final BenthKese plugin;
+
     private Material economyItemMaterial;
     private boolean depositTaxEnabled;
     private double depositTaxRate;
@@ -37,15 +47,34 @@ public class ConfigurationManager {
     }
 
     public void loadConfig() {
-        plugin.saveDefaultConfig();
-        plugin.reloadConfig();
-        FileConfiguration config = plugin.getConfig();
+        YamlDocument config;
+        try {
+            UpdaterSettings updaterSettings = UpdaterSettings.builder()
+                    .setVersioning(new BasicVersioning("config-version"))
+                    .build();
+
+            config = YamlDocument.create(
+                    new File(plugin.getDataFolder(), "config.yml"),
+                    Objects.requireNonNull(plugin.getResource("config.yml")),
+                    GeneralSettings.builder().setUseDefaults(false).build(),
+                    LoaderSettings.builder().setAutoUpdate(true).build(),
+                    DumperSettings.builder().setEncoding(DumperSettings.Encoding.UNICODE).build(),
+                    updaterSettings
+            );
+
+            if (config.reload()) {
+                plugin.getLogger().info("config.yml dosyası güncellendi. (Yeni ayarlar eklendi)");
+            }
+        } catch (IOException | NullPointerException e) {
+            plugin.getLogger().log(Level.SEVERE, "config.yml dosyası oluşturulamadı veya yüklenemedi!", e);
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            return;
+        }
 
         String materialName = config.getString("economy-item", "GOLD_INGOT");
         try {
-            assert materialName != null;
             this.economyItemMaterial = Material.valueOf(materialName.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | NullPointerException e) {
             plugin.getLogger().severe("config.yml dosyasındaki 'economy-item' geçerli bir materyal değil: " + materialName);
             plugin.getLogger().severe("Varsayılan olarak GOLD_INGOT kullanılacak.");
             this.economyItemMaterial = Material.GOLD_INGOT;

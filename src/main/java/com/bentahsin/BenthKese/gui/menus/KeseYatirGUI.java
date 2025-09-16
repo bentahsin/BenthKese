@@ -66,13 +66,11 @@ public class KeseYatirGUI extends Menu {
 
     @Override
     public void setMenuItems() {
-        // Buton konfigürasyonlarını menus.yml'den al
         MenuItemConfig anvilConfig = menuManager.getMenuItem(MENU_KEY, "anvil-input");
         MenuItemConfig handConfig = menuManager.getMenuItem(MENU_KEY, "deposit-hand");
         MenuItemConfig inventoryConfig = menuManager.getMenuItem(MENU_KEY, "deposit-inventory");
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
 
-        // Eylemleri ata
         actions.put(anvilConfig.getSlot(), this::openDepositAnvil);
         actions.put(handConfig.getSlot(), () -> {
             koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{"el"});
@@ -84,20 +82,15 @@ public class KeseYatirGUI extends Menu {
         });
         actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
 
-        // Butonları envantere yerleştir
         inventory.setItem(anvilConfig.getSlot(), createItemFromConfig(anvilConfig, Collections.emptyMap()));
         inventory.setItem(handConfig.getSlot(), createItemFromConfig(handConfig, Collections.emptyMap()));
         inventory.setItem(inventoryConfig.getSlot(), createItemFromConfig(inventoryConfig, Collections.emptyMap()));
         inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
 
-        // Hızlı yatırma butonlarını oluştur
-        // Slotlar ve miktarlar şimdilik kod içinde tanımlı kalabilir,
-        // ancak metin ve materyal menus.yml'den okunur.
         addDepositButton(21, 16);
         addDepositButton(22, 32);
         addDepositButton(23, 64);
 
-        // Boşlukları doldur
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }
 
@@ -111,7 +104,6 @@ public class KeseYatirGUI extends Menu {
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("{miktar}", String.valueOf(amount));
 
-        // createGuiItem yerine yeni createItemFromConfig metodunu kullanıyoruz
         inventory.setItem(slot, createItemFromConfig(quickDepositConfig, placeholders));
     }
 

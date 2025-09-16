@@ -30,7 +30,6 @@ public class KeseMainMenuGUI extends Menu {
 
     private static final String MENU_KEY = "main-menu";
 
-    // Bağımlılıklar artık constructor'dan doğrudan alınıyor.
     private final BenthKese plugin;
     private final MenuManager menuManager;
     private final MessageManager messageManager;
@@ -68,8 +67,6 @@ public class KeseMainMenuGUI extends Menu {
     public void setMenuItems() {
         Player p = playerMenuUtility.getOwner();
 
-        // Diğer GUI'leri açarken tüm bağımlılıkları constructor'larına iletiyoruz.
-        // Bu, bu sınıfların da güncellenmesini gerektirir.
         Runnable openDepositGUI = () -> new KeseYatirGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open();
         Runnable openWithdrawGUI = () -> new KeseCekGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open();
         Runnable openSendGUI = () -> new KeseGonderOyuncuGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, limitManager, configManager).open();
@@ -77,7 +74,6 @@ public class KeseMainMenuGUI extends Menu {
         Runnable openInterestGUI = () -> new InterestMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
         Runnable openHistoryGUI = () -> new TransactionHistoryGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
 
-        // Buton konfigürasyonlarını ve eylemlerini al
         MenuItemConfig depositConfig = menuManager.getMenuItem(MENU_KEY, "deposit");
         actions.put(depositConfig.getSlot(), openDepositGUI);
 
@@ -96,11 +92,9 @@ public class KeseMainMenuGUI extends Menu {
         MenuItemConfig historyConfig = menuManager.getMenuItem(MENU_KEY, "history");
         actions.put(historyConfig.getSlot(), openHistoryGUI);
 
-        // Placeholder'ları Hazırla
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("{bakiye}", numberFormat.format(economy.getBalance(p)));
 
-        // Item'ları Envantere Yerleştir
         inventory.setItem(depositConfig.getSlot(), createItemFromConfig(depositConfig, placeholders));
         inventory.setItem(withdrawConfig.getSlot(), createItemFromConfig(withdrawConfig, placeholders));
         inventory.setItem(sendConfig.getSlot(), createItemFromConfig(sendConfig, placeholders));
@@ -111,7 +105,6 @@ public class KeseMainMenuGUI extends Menu {
         MenuItemConfig balanceConfig = menuManager.getMenuItem(MENU_KEY, "balance-display");
         inventory.setItem(balanceConfig.getSlot(), createItemFromConfig(balanceConfig, placeholders));
 
-        // Boşlukları Doldur
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }
 }

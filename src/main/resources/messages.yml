@@ -144,3 +144,6 @@ general:
 # Anlık bildirimler için kullanılan metinler.
 # ====================================================================
 actionbar-limit-status: "&eLimit: &a{kalan} &7/ &6{toplam}"
+
+# Lütfen bu satırı değiştirmeyin! Eklentinin otomatik güncelleme yapması için gereklidir.
+config-version: 1

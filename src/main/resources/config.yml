@@ -60,3 +60,6 @@ interest:
       rate: 0.20 # %20
     - time: "30d" # 30 gün ve üzeri için
       rate: 0.35 # %35
+
+# Lütfen bu satırı değiştirmeyin! Eklentinin otomatik güncelleme yapması için gereklidir.
+config-version: 1

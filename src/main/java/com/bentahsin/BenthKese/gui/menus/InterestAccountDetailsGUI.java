@@ -33,7 +33,6 @@ public class InterestAccountDetailsGUI extends Menu {
 
     private static final String MENU_KEY = "interest-details-menu";
 
-    // Bağımlılıklar
     private final BenthKese plugin;
     private final MenuManager menuManager;
     private final MessageManager messageManager;
@@ -43,10 +42,8 @@ public class InterestAccountDetailsGUI extends Menu {
     private final ConfigurationManager configManager;
     private final LimitManager limitManager;
 
-    // Görüntülenen Hesap
     private final InterestAccount account;
 
-    // Formatlayıcılar
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
@@ -80,7 +77,6 @@ public class InterestAccountDetailsGUI extends Menu {
         Player player = playerMenuUtility.getOwner();
         boolean isMature = System.currentTimeMillis() >= account.getEndTime();
 
-        // --- Bilgi Paneli ---
         MenuItemConfig infoConfig = menuManager.getMenuItem(MENU_KEY, "info-item");
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("{id}", String.valueOf(account.getAccountId()));
@@ -93,9 +89,7 @@ public class InterestAccountDetailsGUI extends Menu {
         inventory.setItem(infoConfig.getSlot(), createItemFromConfig(infoConfig, placeholders));
 
 
-        // --- Aksiyon Butonları ---
         if (isMature) {
-            // Vadesi dolmuşsa: Parayı Çek Butonu
             MenuItemConfig claimConfig = menuManager.getMenuItem(MENU_KEY, "claim-button");
             actions.put(claimConfig.getSlot(), () -> {
                 interestService.processAccountAction(player, account.getAccountId());
@@ -104,7 +98,6 @@ public class InterestAccountDetailsGUI extends Menu {
             inventory.setItem(claimConfig.getSlot(), createItemFromConfig(claimConfig, placeholders));
 
         } else {
-            // Vadesi dolmamışsa: Hesabı Boz Butonu
             MenuItemConfig breakConfig = menuManager.getMenuItem(MENU_KEY, "break-button");
             actions.put(breakConfig.getSlot(), () -> {
                 MenuItemConfig confirmItemConfig = menuManager.getMenuItem(MENU_KEY, "break-confirmation-item");
@@ -122,13 +115,11 @@ public class InterestAccountDetailsGUI extends Menu {
             inventory.setItem(breakConfig.getSlot(), createItemFromConfig(breakConfig, placeholders));
         }
 
-        // --- Geri Butonu ---
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
         actions.put(backConfig.getSlot(), this::openListMenu);
         inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, new HashMap<>()));
 
 
-        // Boşlukları doldur
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }
 

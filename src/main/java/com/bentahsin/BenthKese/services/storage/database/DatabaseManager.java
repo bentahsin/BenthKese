@@ -38,7 +38,7 @@ public class DatabaseManager {
             }
             setupHikariMySql(mysqlConfig);
             plugin.getLogger().info("MySQL veritabanına başarıyla bağlanıldı.");
-        } else { // Varsayılan olarak SQLite kullanılacak
+        } else {
             setupHikariSqlite();
             plugin.getLogger().info("SQLite veritabanına başarıyla bağlanıldı.");
         }
@@ -107,7 +107,6 @@ public class DatabaseManager {
                 try {
                     stmt.execute("ALTER TABLE benthkese_playerdata ADD COLUMN balance DOUBLE NOT NULL DEFAULT 0.0;");
                 } catch (SQLException ignored) {
-                    // Sütun zaten varsa hata verir, görmezden gel.
                 }
             }
 
@@ -129,18 +128,16 @@ public class DatabaseManager {
                     ");";
             stmt.execute(createInterestTableSQL);
 
-            // YENİ TRANSACTION TABLOSU
             String createTransactionTableSQL = "CREATE TABLE IF NOT EXISTS benthkese_transactions (" +
                     (isMySql() ? "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY," : "id INTEGER PRIMARY KEY AUTOINCREMENT,") +
                     "player_uuid VARCHAR(36) NOT NULL," +
-                    "transaction_type INT NOT NULL," + // Enum ordinal'ı saklanacak
+                    "transaction_type INT NOT NULL," +
                     "amount DOUBLE NOT NULL," +
                     "description VARCHAR(255) NOT NULL," +
                     "timestamp BIGINT NOT NULL" +
                     ");";
             stmt.execute(createTransactionTableSQL);
 
-            // Hızlı sorgular için index ekleyelim
             String createTransactionIndexSQL = "CREATE INDEX IF NOT EXISTS idx_benthkese_transactions_uuid_time ON benthkese_transactions(player_uuid, timestamp);";
             stmt.execute(createTransactionIndexSQL);
 
@@ -162,7 +159,6 @@ public class DatabaseManager {
         try {
             stmt.execute("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition + ";");
         } catch (SQLException ignored) {
-            // Sütun zaten varsa hata verir, görmezden gel.
         }
     }
 

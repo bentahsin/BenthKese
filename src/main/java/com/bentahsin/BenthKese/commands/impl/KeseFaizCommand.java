@@ -43,7 +43,6 @@ public class KeseFaizCommand implements ISubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        // Argümansız /kese faiz komutu, yardım/bilgi mesajı gösterir.
         if (args.length == 0) {
             messageManager.sendMessageList(sender, "interest.help");
             return;

@@ -2,25 +2,28 @@ package com.bentahsin.BenthKese.configuration;
 
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.utils.TextUtil;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 
-/**
- * menus.yml dosyasını yönetir ve GUI sınıfları için yapılandırma verileri sağlar.
- */
 public class MenuManager {
 
     private final BenthKese plugin;
-    private FileConfiguration menuConfig;
+    private YamlDocument menuConfig;
 
     public MenuManager(BenthKese plugin) {
         this.plugin = plugin;
@@ -28,35 +31,37 @@ public class MenuManager {
     }
 
     public void loadMenus() {
-        File menuFile = new File(plugin.getDataFolder(), "menus.yml");
-        if (!menuFile.exists()) {
-            plugin.saveResource("menus.yml", false);
+        try {
+            menuConfig = YamlDocument.create(
+                    new File(plugin.getDataFolder(), "menus.yml"),
+                    Objects.requireNonNull(plugin.getResource("menus.yml")),
+                    GeneralSettings.builder().setUseDefaults(false).build(),
+                    LoaderSettings.builder().setAutoUpdate(true).build(),
+                    DumperSettings.builder().setEncoding(DumperSettings.Encoding.UNICODE).build(),
+                    UpdaterSettings.builder().setVersioning(new BasicVersioning("config-version")).build()
+            );
+
+            if (menuConfig.reload()) {
+                plugin.getLogger().info("menus.yml dosyası güncellendi.");
+            }
+        } catch (IOException | NullPointerException e) {
+            plugin.getLogger().log(Level.SEVERE, "menus.yml dosyası oluşturulamadı veya yüklenemedi!", e);
         }
-        menuConfig = YamlConfiguration.loadConfiguration(menuFile);
     }
 
     public String getMenuTitle(String menuKey) {
         String title = menuConfig.getString(menuKey + ".title", "&cMenu Başlığı Bulunamadı");
-        assert title != null;
         return ChatColor.translateAlternateColorCodes('&', title);
     }
-    /**
-     * Verilen menü anahtarı için ham başlığı alır, placeholder'ları değiştirir ve renklendirir.
-     * @param menuKey Menünün anahtarı (örn: "history-menu").
-     * @param placeholders Değiştirilecek placeholder'lar.
-     * @return İşlenmiş ve renklendirilmiş menü başlığı.
-     */
+
     public String getMenuTitle(String menuKey, Map<String, String> placeholders) {
         String rawTitle = menuConfig.getString(menuKey + ".title", "&cMenu Başlığı Bulunamadı");
         String processedTitle = TextUtil.replacePlaceholders(rawTitle, placeholders);
-        assert processedTitle != null;
         return ChatColor.translateAlternateColorCodes('&', processedTitle);
     }
 
-
     public int getMenuSize(String menuKey) {
         int size = menuConfig.getInt(menuKey + ".size", 27);
-        // Boyutun 9'un katı olduğundan emin ol
         return (size > 0 && size % 9 == 0) ? size : 27;
     }
 
@@ -69,7 +74,7 @@ public class MenuManager {
 
         Material material;
         try {
-            material = Material.valueOf(Objects.requireNonNull(menuConfig.getString(path + ".material", "STONE")).toUpperCase());
+            material = Material.valueOf(menuConfig.getString(path + ".material", "STONE").toUpperCase());
         } catch (IllegalArgumentException e) {
             plugin.getLogger().warning(String.format("menus.yml'deki '%s' materyali geçersiz!", path));
             material = Material.BARRIER;
@@ -82,7 +87,7 @@ public class MenuManager {
         return new MenuItemConfig(material, slot, name, lore);
     }
 
-    public ConfigurationSection getMenuSection(String menuKey) {
-        return menuConfig.getConfigurationSection(menuKey);
+    public Section getMenuSection(String menuKey) {
+        return menuConfig.getSection(menuKey);
     }
 }

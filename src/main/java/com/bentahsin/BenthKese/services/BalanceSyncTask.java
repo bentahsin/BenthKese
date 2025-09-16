@@ -22,7 +22,6 @@ public class BalanceSyncTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        // Sunucudaki her online oyuncu için bakiye güncellemesi yap
         for (Player player : Bukkit.getOnlinePlayers()) {
             storageService.updatePlayerBalance(player.getUniqueId(), economy.getBalance(player));
         }

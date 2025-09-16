@@ -61,7 +61,7 @@ public abstract class Menu implements InventoryHolder {
      * @param period Görevin tekrarlanma periyodu (tick cinsinden, 20 tick = 1 saniye).
      */
     protected void startUpdateTask(BenthKese plugin, long delay, long period) {
-        stopUpdateTask(); // Önceki görevi durdurduğundan emin ol
+        stopUpdateTask();
         updateTask = Bukkit.getScheduler().runTaskTimer(plugin, this::onUpdate, delay, period);
     }
 
@@ -80,7 +80,6 @@ public abstract class Menu implements InventoryHolder {
      * Dinamik olarak güncellenmesi gereken menüler bu metodu override etmelidir.
      */
     public void onUpdate() {
-        // Varsayılan olarak hiçbir şey yapmaz.
     }
 
     public ItemStack createItemFromConfig(MenuItemConfig config, Map<String, String> placeholders) {

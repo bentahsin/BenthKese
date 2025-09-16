@@ -33,7 +33,7 @@ public class EconomyService {
     public double deposit(Player player, int amount) {
         Material itemType = configManager.getEconomyItemMaterial();
         if (!player.getInventory().containsAtLeast(new ItemStack(itemType), amount)) {
-            return -1; // Yeterli eşya yok
+            return -1;
         }
 
         double netAmount = amount;
@@ -106,7 +106,7 @@ public class EconomyService {
      */
     private int getFreeSpaceFor(PlayerInventory inventory, Material material) {
         int freeSpace = 0;
-        for (ItemStack item : inventory.getStorageContents()) { // getStorageContents() zırh ve sol el slotlarını hariç tutar
+        for (ItemStack item : inventory.getStorageContents()) {
             if (item == null || item.getType() == Material.AIR) {
                 freeSpace += material.getMaxStackSize();
             } else if (item.getType() == material) {

@@ -28,7 +28,7 @@ public class LimitGondermeAsildiMiPlaceholder implements IPlaceholder {
         LimitLevel limitLevel = limitManager.getLimitLevel(playerData.getLimitLevel());
 
         if (limitLevel == null || limitLevel.getSendLimit() == -1) {
-            return "false"; // Limit yoksa aşılmamıştır.
+            return "false";
         }
         boolean isExceeded = playerData.getDailySent() >= limitLevel.getSendLimit();
         return String.valueOf(isExceeded);

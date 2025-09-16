@@ -15,10 +15,10 @@ import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import com.bentahsin.BenthKese.utils.AnvilGUIHelper;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
@@ -45,8 +45,7 @@ public class KeseGonderOyuncuGUI {
     }
 
     public void open() {
-        // menus.yml'den ilgili bölümü al
-        ConfigurationSection section = menuManager.getMenuSection("send-menu.player-input");
+        Section section = menuManager.getMenuSection("send-menu.player-input");
         if (section == null) {
             playerMenuUtility.getOwner().sendMessage(ChatColor.RED + "Hata: send-menu.player-input yapılandırması bulunamadı!");
             return;
@@ -63,7 +62,6 @@ public class KeseGonderOyuncuGUI {
                 title,
                 new ItemStack(displayMaterial),
                 (targetPlayer) -> {
-                    // Oyuncu başarıyla bulundu, şimdi miktar GUI'sini aç
                     playerMenuUtility.setTargetPlayerUUID(targetPlayer.getUniqueId());
                     return Collections.singletonList(AnvilGUI.ResponseAction.run(() ->
                             new KeseGonderMiktarGUI(playerMenuUtility, plugin, menuManager, messageManager, storageService, limitManager, configManager).open()

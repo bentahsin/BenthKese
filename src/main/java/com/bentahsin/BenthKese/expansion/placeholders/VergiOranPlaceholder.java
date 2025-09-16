@@ -34,7 +34,6 @@ public class VergiOranPlaceholder implements IPlaceholder {
                 rate = configManager.isSendTaxEnabled() ? configManager.getSendTaxRate() : 0.0;
                 break;
         }
-        // Yüzde olarak formatla (örn: 0.05 -> %5.0)
         return String.format("%%%s", rate * 100);
     }
 }

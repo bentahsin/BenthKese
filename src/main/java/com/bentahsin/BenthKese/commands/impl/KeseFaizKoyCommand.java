@@ -62,8 +62,6 @@ public class KeseFaizKoyCommand implements ISubCommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        // Miktar için tab tamamlama önermeye gerek yok.
-        // Süre için (1d, 7d vb.) eklenebilir ama şimdilik boş bırakmak yeterli.
         return Collections.emptyList();
     }
 }

@@ -12,11 +12,11 @@ package com.bentahsin.BenthKese.data;
  * Bu, veritabanında string yerine sayı (ordinal) olarak saklanarak verimlilik sağlar.
  */
 public enum TransactionType {
-    SEND,         // Para gönderme (-)
-    RECEIVE,      // Para alma (+)
-    DEPOSIT,      // Eşya yatırma (+)
-    WITHDRAW,     // Para çekme (-)
-    LEVEL_UP,     // Limit yükseltme (-)
-    INTEREST_CLAIM, // Faiz kazancı (+)
-    INTEREST_BREAK  // Faizden anapara iadesi (+)
+    SEND,
+    RECEIVE,
+    DEPOSIT,
+    WITHDRAW,
+    LEVEL_UP,
+    INTEREST_CLAIM,
+    INTEREST_BREAK
 }

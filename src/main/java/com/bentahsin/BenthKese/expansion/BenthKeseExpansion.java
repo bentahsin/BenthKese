@@ -55,7 +55,6 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
         String yesText = messageManager.getMessage("general.yes");
         String noText = messageManager.getMessage("general.no");
 
-        // Her bir placeholder'ı oluştur ve kaydet
         addPlaceholder(new LimitSeviyeAdiPlaceholder(storageService, limitManager));
         addPlaceholder(new LimitSonrakiSeviyeAdiPlaceholder(storageService, limitManager, maxLevelText));
         addPlaceholder(new LimitSonrakiSeviyeUcretPlaceholder(storageService, limitManager));
@@ -77,14 +76,11 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
         addPlaceholder(new FaizToplamKazancPlaceholder(storageService));
         addPlaceholder(new FaizSonrakiKazancPlaceholder(storageService, "faiz_sonraki_kazanc_miktar"));
         addPlaceholder(new FaizSonrakiKazancPlaceholder(storageService, "faiz_sonraki_kazanc_sure"));
-        if (!(storageService instanceof YamlStorageService)) { // Sadece SQL'de çalışır
+        if (!(storageService instanceof YamlStorageService)) {
             addPlaceholder(new PlayerRankPlaceholder(storageService));
-            // Top 10 listesini dinamik olarak oluştur
             for (int i = 1; i <= 10; i++) {
-                // Bakiye Sıralaması
                 addPlaceholder(new TopListPlaceholder("top_bakiye_isim_" + i, i, true, storageService::getTopPlayersByBalance));
                 addPlaceholder(new TopListPlaceholder("top_bakiye_deger_" + i, i, false, storageService::getTopPlayersByBalance));
-                // Seviye Sıralaması
                 addPlaceholder(new TopListPlaceholder("top_seviye_isim_" + i, i, true, storageService::getTopPlayersByLimitLevel));
                 addPlaceholder(new TopListPlaceholder("top_seviye_deger_" + i, i, false, storageService::getTopPlayersByLimitLevel));
             }
@@ -128,7 +124,6 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer player, @NotNull String params) {
         if (player == null) return "";
 
-        // Günlük limit sıfırlama
         PlayerData playerData = storageService.getPlayerData(player.getUniqueId());
         if (System.currentTimeMillis() - playerData.getLastResetTime() > TimeUnit.DAYS.toMillis(1)) {
             playerData.resetDailyLimits();
@@ -137,20 +132,18 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
 
         String lowerParams = params.toLowerCase();
 
-        // Önce tam eşleşen, modüler placeholder'ları kontrol et
         IPlaceholder placeholder = placeholders.get(lowerParams);
         if (placeholder != null) {
             return placeholder.getValue(player);
         }
 
-        // Sonra parametreli placeholder'ları kontrol et
         if (lowerParams.startsWith("bakiye_")) {
             return getBakiye(params);
         }
         if (lowerParams.startsWith("seviye_adi_from_id_")) {
             return getSeviyeAdiFromId(params);
         }
-        if (lowerParams.startsWith("seviye_adi_")) { // Bu, "bakiye_"den sonra olmalı
+        if (lowerParams.startsWith("seviye_adi_")) {
             return getSeviyeAdi(params);
         }
 

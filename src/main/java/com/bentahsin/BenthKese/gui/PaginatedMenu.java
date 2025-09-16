@@ -24,8 +24,6 @@ import java.util.Map;
 public abstract class PaginatedMenu<T> extends Menu {
 
     protected int page = 0;
-    // Sayfa başına öğe sayısı ve navigasyon çubuğu gibi sabitler kaldırıldı,
-    // çünkü artık her şey esnek bir şekilde ayarlanabilir.
 
     public PaginatedMenu(PlayerMenuUtility playerMenuUtility) {
         super(playerMenuUtility);
@@ -51,7 +49,6 @@ public abstract class PaginatedMenu<T> extends Menu {
      */
     public abstract Menu getNavigationBackMenu();
 
-    // --- Yapılandırma Metotları (Alt Sınıflar menus.yml'den Veri Sağlar) ---
 
     /**
      * Geri butonunun yapılandırmasını döndürür.
@@ -76,44 +73,36 @@ public abstract class PaginatedMenu<T> extends Menu {
 
     @Override
     public void setMenuItems() {
-        // Navigasyon butonlarını ekle
         addNavigationControls();
 
         List<T> allItems = getAllItems();
         if (allItems == null || allItems.isEmpty()) {
-            // Hiç öğe yoksa bile, boşlukları doldurarak menüyü temiz göster
             fillEmptySlots(getFillerItemConfig());
             return;
         }
 
-        // Bu sayfada gösterilecek item'ları hesapla ve yerleştir
-        // Slot 0'dan başla, envanterin sonuna kadar git.
-        // Navigasyon butonlarının slotları zaten dolu olacağı için üzerine yazılmaz.
-        int maxItemsPerPage = getSlots(); // Teorik maksimum
+        int maxItemsPerPage = getSlots();
         int startIndex = page * maxItemsPerPage;
         int placedItems = 0;
 
         for (int i = 0; i < getSlots(); i++) {
-            // Eğer mevcut slotta zaten bir item varsa (navigasyon butonu gibi), atla.
             if (inventory.getItem(i) != null) {
                 continue;
             }
 
             int itemIndex = startIndex + placedItems;
             if (itemIndex >= allItems.size()) {
-                break; // Listenin sonuna ulaşıldı.
+                break;
             }
 
             T currentItem = allItems.get(itemIndex);
             ItemStack itemStack = getItemStack(currentItem);
 
-            // Tıklama eylemini tanımla
             actions.put(i, () -> onItemClick(currentItem));
             inventory.setItem(i, itemStack);
             placedItems++;
         }
 
-        // Kalan tüm boşlukları doldur
         fillEmptySlots(getFillerItemConfig());
     }
 
@@ -123,11 +112,10 @@ public abstract class PaginatedMenu<T> extends Menu {
     protected void addNavigationControls() {
         int maxPages = getMaxPages();
 
-        // Önceki Sayfa Butonu
         if (page > 0) {
             MenuItemConfig prevConfig = getPreviousPageButtonConfig();
             Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("{onceki_sayfa}", String.valueOf(page)); // Sayfa numarası 0'dan başlar, gösterim 1'den
+            placeholders.put("{onceki_sayfa}", String.valueOf(page));
             placeholders.put("{sayfa}", String.valueOf(page + 1));
 
             inventory.setItem(prevConfig.getSlot(), createItemFromConfig(prevConfig, placeholders));
@@ -137,7 +125,6 @@ public abstract class PaginatedMenu<T> extends Menu {
             });
         }
 
-        // Sonraki Sayfa Butonu
         if (page + 1 < maxPages) {
             MenuItemConfig nextConfig = getNextPageButtonConfig();
             Map<String, String> placeholders = new HashMap<>();
@@ -151,7 +138,6 @@ public abstract class PaginatedMenu<T> extends Menu {
             });
         }
 
-        // Geri Butonu (her zaman görünür)
         MenuItemConfig backConfig = getBackButtonConfig();
         if (backConfig != null) {
             inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
@@ -168,13 +154,11 @@ public abstract class PaginatedMenu<T> extends Menu {
             return 1;
         }
 
-        // Sayfa başına düşen item sayısını, navigasyon butonları hariç boş slot sayısına göre hesapla
         int availableSlots = getSlots();
         if (getBackButtonConfig() != null) availableSlots--;
         if (getPreviousPageButtonConfig() != null) availableSlots--;
         if (getNextPageButtonConfig() != null) availableSlots--;
 
-        // En az 1 slot olduğundan emin ol
         availableSlots = Math.max(1, availableSlots);
 
         return (int) Math.ceil((double) allItems.size() / availableSlots);

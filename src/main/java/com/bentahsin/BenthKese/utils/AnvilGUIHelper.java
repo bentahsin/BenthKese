@@ -48,7 +48,6 @@ public final class AnvilGUIHelper {
                         if (amount <= 0) {
                             return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(messageManager.getMessage("invalid-amount")));
                         }
-                        // Başarılı olursa, dışarıdan verilen fonksiyonu çalıştır
                         return onComplete.apply(amount);
                     } catch (NumberFormatException e) {
                         return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(messageManager.getMessage("gui.anvil.not-a-number")));
@@ -84,7 +83,6 @@ public final class AnvilGUIHelper {
                     if (target.equals(player)) {
                         return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(messageManager.getMessage("gui.anvil.cant-send-self")));
                     }
-                    // Başarılı olursa, dışarıdan verilen fonksiyonu çalıştır
                     return onComplete.apply(target);
                 })
                 .open(player);

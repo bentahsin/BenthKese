@@ -66,7 +66,7 @@ public class AdminBakiyeCommand implements IAdminSubCommand {
         double amount;
         try {
             amount = Double.parseDouble(args[2]);
-            if (amount < 0) { // Negatif miktar kontrolü
+            if (amount < 0) {
                 messageManager.sendMessage(sender, "invalid-amount");
                 return;
             }

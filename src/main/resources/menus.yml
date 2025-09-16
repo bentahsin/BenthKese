@@ -556,3 +556,6 @@ history-menu:
           - "&7Açıklama: &f{aciklama}"
           - ""
           - "&8{tarih}"
+
+# Lütfen bu satırı değiştirmeyin! Eklentinin otomatik güncelleme yapması için gereklidir.
+config-version: 1

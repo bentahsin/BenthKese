@@ -17,7 +17,7 @@ public class TransactionData {
     private final UUID playerUuid;
     private final TransactionType type;
     private final double amount;
-    private final String description; // İlgili oyuncu adı, "Limit Yükseltme" vb.
+    private final String description;
     private final long timestamp;
 
     public TransactionData(UUID playerUuid, TransactionType type, double amount, String description, long timestamp) {
@@ -28,7 +28,6 @@ public class TransactionData {
         this.timestamp = timestamp;
     }
 
-    // Getter metotları
     public UUID getPlayerUuid() {
         return playerUuid;
     }

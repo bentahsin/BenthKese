@@ -19,7 +19,6 @@ public class MenuItemConfig {
         this.lore = lore;
     }
 
-    // Getter'lar
     public Material getMaterial() { return material; }
     public int getSlot() { return slot; }
     public String getName() { return name; }

@@ -87,7 +87,6 @@ public class KeseLimitGUI extends Menu {
             return;
         }
 
-        // --- Durum Bilgisi Paneli ---
         String infiniteText = messageManager.getMessage("limit-info.infinite-text");
         String maxSend = currentLevel.getSendLimit() == -1 ? infiniteText : numberFormat.format(currentLevel.getSendLimit());
         double remainingSend = currentLevel.getSendLimit() == -1 ? Double.POSITIVE_INFINITY : currentLevel.getSendLimit() - playerData.getDailySent();
@@ -102,7 +101,6 @@ public class KeseLimitGUI extends Menu {
         MenuItemConfig statusConfig = menuManager.getMenuItem(MENU_KEY, "status-display");
         inventory.setItem(statusConfig.getSlot(), createItemFromConfig(statusConfig, statusPlaceholders));
 
-        // --- Seviye Yükseltme Paneli (Dinamik) ---
         LimitLevel nextLevel = limitManager.getNextLevel(playerData.getLimitLevel());
         if (nextLevel != null) {
             double cost = nextLevel.getCost();
@@ -118,7 +116,7 @@ public class KeseLimitGUI extends Menu {
 
                 Runnable onConfirm = () -> {
                     yukseltCommandLogic.execute(player, new String[0]);
-                    this.open(); // Menüyü yenile
+                    this.open();
                 };
                 Runnable onCancel = this::open;
 
@@ -137,12 +135,10 @@ public class KeseLimitGUI extends Menu {
             inventory.setItem(maxLevelConfig.getSlot(), createItemFromConfig(maxLevelConfig, new HashMap<>()));
         }
 
-        // --- Geri Butonu ---
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
         actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, plugin, menuManager, messageManager, economyService, configurationManager, storageService, limitManager, interestService).open());
         inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, new HashMap<>()));
 
-        // --- Boşlukları Doldur ---
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }
 }

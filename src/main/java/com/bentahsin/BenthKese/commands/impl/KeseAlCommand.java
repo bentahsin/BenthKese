@@ -75,16 +75,13 @@ public class KeseAlCommand implements ISubCommand {
             double totalCost = withdrawnAmount * (1 + taxRate);
             double taxAmount = totalCost - withdrawnAmount;
 
-            // --- İSTATİSTİK GÜNCELLEME ---
             PlayerData playerData = storageService.getPlayerData(player.getUniqueId());
             playerData.incrementTotalTransactions();
             if (taxAmount > 0) {
                 playerData.addTotalTaxPaid(taxAmount);
             }
             storageService.savePlayerData(playerData);
-            // --- BİTİŞ ---
 
-            // Loglama
             storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.WITHDRAW, withdrawnAmount, itemBirim, System.currentTimeMillis()));
 
             if (withdrawnAmount < requestedAmount) {

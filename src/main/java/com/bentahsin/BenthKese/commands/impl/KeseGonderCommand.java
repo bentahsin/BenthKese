@@ -10,8 +10,8 @@ import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
-import com.bentahsin.BenthKese.utils.ActionBarUtil; // YENİ IMPORT
-import com.bentahsin.BenthKese.utils.TextUtil; // YENİ IMPORT
+import com.bentahsin.BenthKese.utils.ActionBarUtil;
+import com.bentahsin.BenthKese.utils.TextUtil;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
@@ -122,7 +122,6 @@ public class KeseGonderCommand implements ISubCommand {
             senderData.addDailySent(amount);
             targetData.addDailyReceived(amount);
 
-            // İstatistik Güncelleme
             senderData.incrementTotalTransactions();
             senderData.addTotalSent(amount);
             if(taxAmount > 0) senderData.addTotalTaxPaid(taxAmount);
@@ -131,12 +130,10 @@ public class KeseGonderCommand implements ISubCommand {
             targetData.incrementTotalTransactions();
             storageService.savePlayerData(targetData);
 
-            // Loglama
             long timestamp = System.currentTimeMillis();
             storageService.logTransaction(new TransactionData(senderPlayer.getUniqueId(), TransactionType.SEND, amount, targetPlayer.getName(), timestamp));
             storageService.logTransaction(new TransactionData(targetPlayer.getUniqueId(), TransactionType.RECEIVE, amount, senderPlayer.getName(), timestamp));
 
-            // Başarı mesajları
             senderPlayer.sendMessage(messageManager.getMessage("send-money.success-sender")
                     .replace("{oyuncu}", targetPlayer.getName())
                     .replace("{miktar}", numberFormat.format(amount))
@@ -147,7 +144,6 @@ public class KeseGonderCommand implements ISubCommand {
                     .replace("{gonderen}", senderPlayer.getName())
                     .replace("{miktar}", numberFormat.format(amount)));
 
-            // --- YENİ: ACTION BAR BİLDİRİMLERİ ---
             sendLimitActionBars(senderPlayer, senderData, senderLevel, targetPlayer, targetData, targetLevel);
 
         } else {
@@ -161,7 +157,6 @@ public class KeseGonderCommand implements ISubCommand {
     private void sendLimitActionBars(Player sender, PlayerData senderData, LimitLevel senderLevel, Player receiver, PlayerData receiverData, LimitLevel receiverLevel) {
         String messageTemplate = messageManager.getMessage("actionbar-limit-status");
 
-        // Gönderici için Action Bar
         if (senderLevel.getSendLimit() != -1) {
             Map<String, String> senderPlaceholders = new HashMap<>();
             double kalan = senderLevel.getSendLimit() - senderData.getDailySent();
@@ -170,7 +165,6 @@ public class KeseGonderCommand implements ISubCommand {
             ActionBarUtil.sendActionBar(sender, TextUtil.replacePlaceholders(messageTemplate, senderPlaceholders));
         }
 
-        // Alıcı için Action Bar
         if (receiverLevel.getReceiveLimit() != -1) {
             Map<String, String> receiverPlaceholders = new HashMap<>();
             double kalan = receiverLevel.getReceiveLimit() - receiverData.getDailyReceived();

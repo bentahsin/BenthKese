@@ -36,11 +36,11 @@ public class LimitSonrakiSeviyeIlerlemePlaceholder implements IPlaceholder {
         int currentLevelId = storageService.getPlayerData(player.getUniqueId()).getLimitLevel();
         LimitLevel nextLevel = limitManager.getNextLevel(currentLevelId);
         if (nextLevel == null || nextLevel.getCost() <= 0) {
-            return "100"; // Max seviyede veya sonraki seviye bedava
+            return "100";
         }
         double balance = economy.getBalance(player);
         double cost = nextLevel.getCost();
         double percentage = (balance / cost) * 100.0;
-        return String.format("%.0f", Math.min(100.0, percentage)); // 100'ü geçmesin ve ondalıksız olsun
+        return String.format("%.0f", Math.min(100.0, percentage));
     }
 }

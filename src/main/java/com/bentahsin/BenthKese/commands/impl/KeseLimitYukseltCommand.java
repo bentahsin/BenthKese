@@ -72,14 +72,9 @@ public class KeseLimitYukseltCommand implements ISubCommand {
         if (response.transactionSuccess()) {
             playerData.setLimitLevel(nextLevel.getLevel());
 
-            // --- İSTATİSTİK GÜNCELLEME ---
             playerData.incrementTotalTransactions();
-            // İsteğe bağlı: Seviye yükseltme maliyetini ödenen vergiye ekleyebilirsiniz.
-            // playerData.addTotalTaxPaid(cost);
             storageService.savePlayerData(playerData);
-            // --- BİTİŞ ---
 
-            // Loglama
             storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.LEVEL_UP, cost, nextLevel.getName(), System.currentTimeMillis()));
 
             String message = messageManager.getMessage("level-up.success")

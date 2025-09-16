@@ -11,27 +11,30 @@ import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.data.*;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
+import com.github.benmanes.caffeine.cache.*;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public abstract class AbstractSqlStorageService implements IStorageService {
 
     protected final BenthKese plugin;
     protected final DatabaseManager databaseManager;
-    private final Map<UUID, PlayerData> playerDataCache = new ConcurrentHashMap<>();
     private final Economy economy = BenthKese.getEconomy();
     private final LimitManager limitManager;
 
-    // SQL Sorguları
+    private final LoadingCache<UUID, PlayerData> playerDataCache;
+    private final Cache<String, List<TopPlayerEntry>> topListCache;
+
+
     private final String SELECT_PLAYER = "SELECT * FROM benthkese_playerdata WHERE uuid = ?;";
     private final String SELECT_ACCOUNTS = "SELECT * FROM benthkese_interest_accounts WHERE player_uuid = ?;";
     private final String INSERT_ACCOUNT = "INSERT INTO benthkese_interest_accounts (player_uuid, account_id, principal, interest_rate, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?);";
@@ -58,11 +61,26 @@ public abstract class AbstractSqlStorageService implements IStorageService {
                 : "INSERT OR REPLACE INTO benthkese_playernames (uuid, last_known_name) VALUES (?, ?);";
 
         UPDATE_BALANCE = "UPDATE benthkese_playerdata SET balance = ? WHERE uuid = ?;";
+
+        this.playerDataCache = Caffeine.newBuilder()
+                .maximumSize(1000)
+                .expireAfterAccess(30, TimeUnit.MINUTES)
+                .removalListener((UUID uuid, PlayerData data, RemovalCause cause) -> {
+                    if (data != null) {
+                        savePlayerDataToDatabase(data);
+                    }
+                })
+                .build(this::loadPlayerDataFromDatabase);
+
+        this.topListCache = Caffeine.newBuilder()
+                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .maximumSize(10)
+                .build();
     }
 
     @Override
     public PlayerData getPlayerData(UUID uuid) {
-        return playerDataCache.computeIfAbsent(uuid, this::loadPlayerDataFromDatabase);
+        return playerDataCache.get(uuid);
     }
 
     @Override
@@ -78,11 +96,8 @@ public abstract class AbstractSqlStorageService implements IStorageService {
 
     @Override
     public void unloadPlayer(UUID uuid) {
-        PlayerData data = playerDataCache.get(uuid);
-        if (data != null) {
-            savePlayerDataToDatabase(data);
-            playerDataCache.remove(uuid);
-        }
+        playerDataCache.invalidate(uuid);
+        playerDataCache.cleanUp();
     }
 
     private PlayerData loadPlayerDataFromDatabase(UUID uuid) {
@@ -107,10 +122,8 @@ public abstract class AbstractSqlStorageService implements IStorageService {
         return new PlayerData(uuid);
     }
 
-
     private void savePlayerDataToDatabase(PlayerData data) {
         try (Connection conn = databaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(getUpsertPlayerStatement())) {
-            // İster INSERT ister REPLACE olsun, tüm parametreler bir kez ayarlanır.
             ps.setString(1, data.getUuid().toString());
             ps.setInt(2, data.getLimitLevel());
             ps.setDouble(3, data.getDailySent());
@@ -223,6 +236,12 @@ public abstract class AbstractSqlStorageService implements IStorageService {
 
     @Override
     public List<TopPlayerEntry> getTopPlayersByBalance(int limit) {
+        String cacheKey = "balance_" + limit;
+        List<TopPlayerEntry> cachedList = topListCache.getIfPresent(cacheKey);
+        if (cachedList != null) {
+            return cachedList;
+        }
+
         List<TopPlayerEntry> topPlayers = new ArrayList<>();
         try (Connection conn = databaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_TOP_BALANCE)) {
             ps.setInt(1, limit);
@@ -233,6 +252,7 @@ public abstract class AbstractSqlStorageService implements IStorageService {
                         rs.getDouble("balance")
                 ));
             }
+            topListCache.put(cacheKey, topPlayers);
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Bakiye liderlik tablosu yüklenemedi", e);
         }
@@ -241,6 +261,12 @@ public abstract class AbstractSqlStorageService implements IStorageService {
 
     @Override
     public List<TopPlayerEntry> getTopPlayersByLimitLevel(int limit) {
+        String cacheKey = "level_" + limit;
+        List<TopPlayerEntry> cachedList = topListCache.getIfPresent(cacheKey);
+        if (cachedList != null) {
+            return cachedList;
+        }
+
         List<TopPlayerEntry> topPlayers = new ArrayList<>();
         try (Connection conn = databaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_TOP_LEVEL)) {
             ps.setInt(1, limit);
@@ -253,6 +279,7 @@ public abstract class AbstractSqlStorageService implements IStorageService {
                         levelName
                 ));
             }
+            topListCache.put(cacheKey, topPlayers);
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Seviye liderlik tablosu yüklenemedi", e);
         }
@@ -285,7 +312,6 @@ public abstract class AbstractSqlStorageService implements IStorageService {
                     PlayerData newPlayerData = new PlayerData(uuid);
                     newPlayerData.setBalance(economy.getBalance(player));
                     savePlayerData(newPlayerData);
-                    // Bakiye update işlemini tekrar denemeye gerek yok, çünkü savePlayerData zaten bakiyeyi de kaydediyor.
                 }
             } catch (SQLException e) {
                 plugin.getLogger().log(Level.SEVERE, "Oyuncu bakiyesi güncellenemedi: " + uuid, e);

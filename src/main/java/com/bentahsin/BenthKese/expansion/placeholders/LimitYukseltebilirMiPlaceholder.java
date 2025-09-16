@@ -40,7 +40,7 @@ public class LimitYukseltebilirMiPlaceholder implements IPlaceholder {
         int currentLevelId = storageService.getPlayerData(player.getUniqueId()).getLimitLevel();
         LimitLevel nextLevel = limitManager.getNextLevel(currentLevelId);
         if (nextLevel == null) {
-            return noText; // Max seviyede
+            return noText;
         }
         return economy.has(player, nextLevel.getCost()) ? yesText : noText;
     }

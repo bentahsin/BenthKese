@@ -17,11 +17,11 @@ import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import com.bentahsin.BenthKese.utils.AnvilGUIHelper;
 import com.bentahsin.BenthKese.utils.TextUtil;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -51,7 +51,7 @@ public class KeseGonderMiktarGUI {
         Player target = Bukkit.getPlayer(playerMenuUtility.getTargetPlayerUUID());
         if (target == null) return;
 
-        ConfigurationSection section = menuManager.getMenuSection("send-menu.amount-input");
+        Section section = menuManager.getMenuSection("send-menu.amount-input");
         if (section == null) {
             player.sendMessage(ChatColor.RED + "Hata: send-menu.amount-input yapılandırması bulunamadı!");
             return;

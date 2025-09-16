@@ -9,15 +9,19 @@ package com.bentahsin.BenthKese.services.storage;
 
 import com.bentahsin.BenthKese.BenthKese;
 import com.bentahsin.BenthKese.data.*;
+import com.github.benmanes.caffeine.cache.*;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -25,8 +29,11 @@ public class YamlStorageService implements IStorageService {
 
     private final BenthKese plugin;
     private final File dataFolder;
-    private final Map<UUID, PlayerData> playerDataCache = new ConcurrentHashMap<>();
-    private static final int MAX_TRANSACTIONS_TO_KEEP = 50; // YAML dosyasında saklanacak max işlem sayısı
+    private static final int MAX_TRANSACTIONS_TO_KEEP = 50;
+
+    private final LoadingCache<UUID, PlayerData> playerDataCache;
+    private final Cache<UUID, List<InterestAccount>> interestAccountCache;
+    private final Cache<UUID, List<TransactionData>> transactionCache;
 
     public YamlStorageService(BenthKese plugin) {
         this.plugin = plugin;
@@ -36,11 +43,76 @@ public class YamlStorageService implements IStorageService {
                 plugin.getLogger().severe("Oyuncu veri klasörü oluşturulamadı! Eklenti düzgün çalışmayabilir.");
             }
         }
+
+        this.playerDataCache = Caffeine.newBuilder()
+                .maximumSize(500)
+                .expireAfterAccess(20, TimeUnit.MINUTES)
+                .removalListener((UUID uuid, PlayerData data, RemovalCause cause) -> {
+                    if (data != null) {
+                        savePlayerDataToFile(data);
+                    }
+                })
+                .build(this::loadPlayerDataFromFile);
+
+        this.interestAccountCache = Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .build();
+
+        this.transactionCache = Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .build();
+    }
+
+
+    private YamlDocument getPlayerDocument(UUID uuid) throws IOException {
+        File playerFile = new File(dataFolder, uuid.toString() + ".yml");
+        return YamlDocument.create(playerFile,
+                GeneralSettings.DEFAULT,
+                LoaderSettings.DEFAULT,
+                DumperSettings.builder().setEncoding(DumperSettings.Encoding.UNICODE).build(),
+                UpdaterSettings.DEFAULT);
+    }
+
+    private PlayerData loadPlayerDataFromFile(UUID uuid) {
+        try {
+            YamlDocument config = getPlayerDocument(uuid);
+            PlayerData data = new PlayerData(uuid);
+            data.setLimitLevel(config.getInt("player-data.limit-level", 1));
+            data.setDailySent(config.getDouble("player-data.daily-sent", 0.0));
+            data.setDailyReceived(config.getDouble("player-data.daily-received", 0.0));
+            data.setLastResetTime(config.getLong("player-data.last-reset-time", System.currentTimeMillis()));
+            data.setTotalTransactions(config.getInt("player-data.total-transactions", 0));
+            data.setTotalSent(config.getDouble("player-data.total-sent", 0.0));
+            data.setTotalTaxPaid(config.getDouble("player-data.total-tax-paid", 0.0));
+            return data;
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Oyuncu veri dosyası yüklenemedi: " + uuid, e);
+            return new PlayerData(uuid);
+        }
+    }
+
+    private void savePlayerDataToFile(PlayerData playerData) {
+        if (playerData == null) return;
+        try {
+            YamlDocument config = getPlayerDocument(playerData.getUuid());
+            config.set("player-data.limit-level", playerData.getLimitLevel());
+            config.set("player-data.daily-sent", playerData.getDailySent());
+            config.set("player-data.daily-received", playerData.getDailyReceived());
+            config.set("player-data.last-reset-time", playerData.getLastResetTime());
+            config.set("player-data.total-transactions", playerData.getTotalTransactions());
+            config.set("player-data.total-sent", playerData.getTotalSent());
+            config.set("player-data.total-tax-paid", playerData.getTotalTaxPaid());
+            config.save();
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Oyuncu verisi (unload/evict) kaydedilemedi: " + playerData.getUuid(), e);
+        }
     }
 
     @Override
     public PlayerData getPlayerData(UUID uuid) {
-        return playerDataCache.computeIfAbsent(uuid, this::loadPlayerDataFromFile);
+        return playerDataCache.get(uuid);
     }
 
     @Override
@@ -50,64 +122,65 @@ public class YamlStorageService implements IStorageService {
 
     @Override
     public void loadPlayer(UUID uuid) {
-        getPlayerData(uuid);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> getPlayerData(uuid));
     }
 
     @Override
     public void unloadPlayer(UUID uuid) {
-        if (playerDataCache.containsKey(uuid)) {
-            File playerFile = new File(dataFolder, uuid + ".yml");
-            FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
-            saveAllDataToConfig(config, uuid);
-            try {
-                config.save(playerFile);
-            } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "Oyuncu verisi (unload) kaydedilemedi: " + uuid, e);
-            }
-            playerDataCache.remove(uuid);
-        }
+        playerDataCache.invalidate(uuid);
+        playerDataCache.cleanUp();
     }
 
-    // --- Faiz Hesapları ---
     @Override
     public List<InterestAccount> getInterestAccounts(UUID playerUuid) {
-        List<InterestAccount> accounts = new ArrayList<>();
-        File playerFile = new File(dataFolder, playerUuid.toString() + ".yml");
-        if (!playerFile.exists()) return accounts;
-
-        FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
-        ConfigurationSection accountsSection = config.getConfigurationSection("interest-accounts");
-        if (accountsSection == null) return accounts;
-
-        for (String key : accountsSection.getKeys(false)) {
-            try {
-                int accountId = Integer.parseInt(key);
-                InterestAccount account = new InterestAccount();
-                account.setPlayerUuid(playerUuid);
-                account.setAccountId(accountId);
-                account.setPrincipal(accountsSection.getDouble(key + ".principal"));
-                account.setInterestRate(accountsSection.getDouble(key + ".interest-rate"));
-                account.setStartTime(accountsSection.getLong(key + ".start-time"));
-                account.setEndTime(accountsSection.getLong(key + ".end-time"));
-                accounts.add(account);
-            } catch (NumberFormatException e) {
-                plugin.getLogger().warning("Oyuncu " + playerUuid + " için geçersiz faiz hesap ID'si bulundu: " + key);
-            }
+        List<InterestAccount> cachedList = interestAccountCache.getIfPresent(playerUuid);
+        if (cachedList != null) {
+            return cachedList;
         }
+
+        List<InterestAccount> accounts = new ArrayList<>();
+        try {
+            YamlDocument config = getPlayerDocument(playerUuid);
+            Section accountsSection = config.getSection("interest-accounts");
+            if (accountsSection == null) return accounts;
+
+            for (Object key : accountsSection.getKeys()) {
+                try {
+                    int accountId = Integer.parseInt(String.valueOf(key));
+                    Section accountSection = accountsSection.getSection(String.valueOf(key));
+                    if (accountSection != null) {
+                        InterestAccount account = new InterestAccount();
+                        account.setPlayerUuid(playerUuid);
+                        account.setAccountId(accountId);
+                        account.setPrincipal(accountSection.getDouble("principal"));
+                        account.setInterestRate(accountSection.getDouble("interest-rate"));
+                        account.setStartTime(accountSection.getLong("start-time"));
+                        account.setEndTime(accountSection.getLong("end-time"));
+                        accounts.add(account);
+                    }
+                } catch (NumberFormatException e) {
+                    plugin.getLogger().warning("Oyuncu " + playerUuid + " için geçersiz faiz hesap ID'si bulundu: " + key);
+                }
+            }
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Oyuncu faiz hesapları yüklenemedi: " + playerUuid, e);
+        }
+
+        interestAccountCache.put(playerUuid, accounts);
         return accounts;
     }
 
     @Override
     public void saveInterestAccount(InterestAccount account) {
-        File playerFile = new File(dataFolder, account.getPlayerUuid().toString() + ".yml");
-        FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
-        String path = "interest-accounts." + account.getAccountId();
-        config.set(path + ".principal", account.getPrincipal());
-        config.set(path + ".interest-rate", account.getInterestRate());
-        config.set(path + ".start-time", account.getStartTime());
-        config.set(path + ".end-time", account.getEndTime());
+        interestAccountCache.invalidate(account.getPlayerUuid());
         try {
-            config.save(playerFile);
+            YamlDocument config = getPlayerDocument(account.getPlayerUuid());
+            String path = "interest-accounts." + account.getAccountId();
+            config.set(path + ".principal", account.getPrincipal());
+            config.set(path + ".interest-rate", account.getInterestRate());
+            config.set(path + ".start-time", account.getStartTime());
+            config.set(path + ".end-time", account.getEndTime());
+            config.save();
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Faiz hesabı (YAML) kaydedilemedi: " + account.getPlayerUuid(), e);
         }
@@ -115,43 +188,83 @@ public class YamlStorageService implements IStorageService {
 
     @Override
     public void deleteInterestAccount(UUID playerUuid, int accountId) {
-        File playerFile = new File(dataFolder, playerUuid.toString() + ".yml");
-        if (!playerFile.exists()) return;
-        FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
-        config.set("interest-accounts." + accountId, null);
+        interestAccountCache.invalidate(playerUuid);
         try {
-            config.save(playerFile);
+            YamlDocument config = getPlayerDocument(playerUuid);
+            config.set("interest-accounts." + accountId, null);
+            config.save();
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Faiz hesabı (YAML) silinemedi: " + playerUuid, e);
         }
     }
 
-    // --- İşlemler ---
+    @Override
+    public List<TransactionData> getTransactions(UUID playerUuid, int limit) {
+        List<TransactionData> cachedList = transactionCache.getIfPresent(playerUuid);
+        if (cachedList != null) {
+            return cachedList.stream().limit(limit).collect(Collectors.toList());
+        }
+
+        List<TransactionData> transactions = new ArrayList<>();
+        try {
+            YamlDocument config = getPlayerDocument(playerUuid);
+            List<Map<?, ?>> history = config.getMapList("transaction-history", Collections.emptyList());
+
+            for (int i = history.size() - 1; i >= 0; i--) {
+                Map<?, ?> entry = history.get(i);
+                try {
+                    TransactionData data = new TransactionData(
+                            playerUuid,
+                            TransactionType.values()[(Integer) entry.get("type")],
+                            ((Number) entry.get("amount")).doubleValue(),
+                            (String) entry.get("description"),
+                            ((Number) entry.get("timestamp")).longValue()
+                    );
+                    transactions.add(data);
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Oyuncu " + playerUuid + " için bozuk bir işlem geçmişi kaydı atlandı.");
+                }
+            }
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Oyuncu işlem geçmişi yüklenemedi: " + playerUuid, e);
+        }
+
+        transactionCache.put(playerUuid, transactions);
+        return transactions.stream().limit(limit).collect(Collectors.toList());
+    }
+
     @Override
     public void logTransaction(TransactionData transaction) {
+        transactionCache.invalidate(transaction.getPlayerUuid());
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            File playerFile = new File(dataFolder, transaction.getPlayerUuid() + ".yml");
-            FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
-
-            List<Map<?, ?>> rawHistory = config.getMapList("transaction-history");
-            List<Map<String, Object>> history = rawHistory.stream()
-                    .map(m -> (Map<String, Object>) m)
-                    .collect(Collectors.toList());
-
-            Map<String, Object> newTransactionMap = new HashMap<>();
-            newTransactionMap.put("type", transaction.getType().ordinal());
-            newTransactionMap.put("amount", transaction.getAmount());
-            newTransactionMap.put("description", transaction.getDescription());
-            newTransactionMap.put("timestamp", transaction.getTimestamp());
-            history.add(newTransactionMap);
-
-            while (history.size() > MAX_TRANSACTIONS_TO_KEEP) {
-                history.remove(0);
-            }
-
-            config.set("transaction-history", history);
             try {
-                config.save(playerFile);
+                YamlDocument config = getPlayerDocument(transaction.getPlayerUuid());
+                List<Map<String, Object>> history = new ArrayList<>();
+                for (Map<?, ?> rawMap : config.getMapList("transaction-history", Collections.emptyList())) {
+                    if (rawMap != null) {
+                        Map<String, Object> checkedMap = new HashMap<>();
+                        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+                            if (entry.getKey() instanceof String) {
+                                checkedMap.put((String) entry.getKey(), entry.getValue());
+                            }
+                        }
+                        history.add(checkedMap);
+                    }
+                }
+
+                Map<String, Object> newTransactionMap = new HashMap<>();
+                newTransactionMap.put("type", transaction.getType().ordinal());
+                newTransactionMap.put("amount", transaction.getAmount());
+                newTransactionMap.put("description", transaction.getDescription());
+                newTransactionMap.put("timestamp", transaction.getTimestamp());
+                history.add(newTransactionMap);
+
+                while (history.size() > MAX_TRANSACTIONS_TO_KEEP) {
+                    history.remove(0);
+                }
+                config.set("transaction-history", history);
+                config.save();
             } catch (IOException e) {
                 plugin.getLogger().log(Level.SEVERE, "İşlem geçmişi (YAML) kaydedilemedi: " + transaction.getPlayerUuid(), e);
             }
@@ -159,99 +272,26 @@ public class YamlStorageService implements IStorageService {
     }
 
     @Override
-    public List<TransactionData> getTransactions(UUID playerUuid, int limit) {
-        File playerFile = new File(dataFolder, playerUuid.toString() + ".yml");
-        if (!playerFile.exists()) {
-            return Collections.emptyList();
-        }
-
-        FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
-        List<Map<?, ?>> history = config.getMapList("transaction-history");
-        if (history.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<TransactionData> transactions = new ArrayList<>();
-        for (int i = history.size() - 1; i >= 0; i--) {
-            if (transactions.size() >= limit) {
-                break;
-            }
-
-            Map<?, ?> entry = history.get(i);
-            try {
-                TransactionData data = new TransactionData(
-                        playerUuid,
-                        TransactionType.values()[(Integer) entry.get("type")],
-                        (Double) entry.get("amount"),
-                        (String) entry.get("description"),
-                        (Long) entry.get("timestamp")
-                );
-                transactions.add(data);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Oyuncu " + playerUuid + " için bozuk bir işlem geçmişi kaydı atlandı.");
-            }
-        }
-        return transactions;
-    }
-
-    // --- Private Helper Metotlar ---
-    private PlayerData loadPlayerDataFromFile(UUID uuid) {
-        File playerFile = new File(dataFolder, uuid.toString() + ".yml");
-        if (!playerFile.exists()) return new PlayerData(uuid);
-
-        FileConfiguration config = YamlConfiguration.loadConfiguration(playerFile);
-        PlayerData data = new PlayerData(uuid);
-        data.setLimitLevel(config.getInt("limit-level", 1));
-        data.setDailySent(config.getDouble("daily-sent", 0.0));
-        data.setDailyReceived(config.getDouble("daily-received", 0.0));
-        data.setLastResetTime(config.getLong("last-reset-time", System.currentTimeMillis()));
-
-        return data;
-    }
-
-    private void saveAllDataToConfig(FileConfiguration config, UUID uuid) {
-        PlayerData playerData = playerDataCache.get(uuid);
-        if (playerData != null) {
-            config.set("limit-level", playerData.getLimitLevel());
-            config.set("daily-sent", playerData.getDailySent());
-            config.set("daily-received", playerData.getDailyReceived());
-            config.set("last-reset-time", playerData.getLastResetTime());
-        }
-    }
-
-    // --- IStorageService'den Gelen Diğer Metotlar (YAML için Verimsiz Olduğundan Boş Bırakıldı) ---
-
-    @Override
     public List<TopPlayerEntry> getTopPlayersByBalance(int limit) {
-        // YAML depolama için çok verimsiz bir işlemdir. Tüm dosyaları taramak gerekir.
-        // Bu özellik için veritabanı (MySQL, SQLite) kullanılması önerilir.
         plugin.getLogger().warning("getTopPlayersByBalance metodu YAML depolaması için desteklenmiyor.");
         return Collections.emptyList();
     }
 
     @Override
     public List<TopPlayerEntry> getTopPlayersByLimitLevel(int limit) {
-        // YAML depolama için çok verimsiz bir işlemdir.
         plugin.getLogger().warning("getTopPlayersByLimitLevel metodu YAML depolaması için desteklenmiyor.");
         return Collections.emptyList();
     }
 
     @Override
     public int getPlayerBalanceRank(UUID uuid) {
-        // YAML depolama için çok verimsiz bir işlemdir.
         plugin.getLogger().warning("getPlayerBalanceRank metodu YAML depolaması için desteklenmiyor.");
-        return -1; // -1 genellikle 'bulunamadı' veya 'desteklenmiyor' anlamına gelir.
+        return -1;
     }
 
     @Override
-    public void updatePlayerName(UUID uuid, String name) {
-        // Oyuncu isimleri genellikle ana sunucu tarafından yönetilir ve YAML'da ayrıca saklanmaz.
-        // Eğer saklanması gerekiyorsa, buraya bir kayıt mekanizması eklenebilir.
-    }
+    public void updatePlayerName(UUID uuid, String name) {}
 
     @Override
-    public void updatePlayerBalance(UUID uuid, double balance) {
-        // Bakiye, Vault ve ekonomi eklentisi tarafından yönetilir.
-        // Bu metodun YAML depolamasında doğrudan bir karşılığı yoktur.
-    }
+    public void updatePlayerBalance(UUID uuid, double balance) {}
 }

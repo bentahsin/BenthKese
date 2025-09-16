@@ -8,20 +8,27 @@
 package com.bentahsin.BenthKese.configuration;
 
 import com.bentahsin.BenthKese.BenthKese;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class MessageManager {
 
     private final BenthKese plugin;
-    private FileConfiguration messagesConfig;
+    private YamlDocument messagesConfig;
 
     public MessageManager(BenthKese plugin) {
         this.plugin = plugin;
@@ -29,52 +36,52 @@ public class MessageManager {
     }
 
     public void loadMessages() {
-        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        if (!messagesFile.exists()) {
-            plugin.saveResource("messages.yml", false);
+        try {
+            UpdaterSettings updaterSettings = UpdaterSettings.builder()
+                    .setVersioning(new BasicVersioning("config-version"))
+                    .build();
+
+            messagesConfig = YamlDocument.create(
+                    new File(plugin.getDataFolder(), "messages.yml"),
+                    Objects.requireNonNull(plugin.getResource("messages.yml")),
+                    GeneralSettings.builder().setUseDefaults(false).build(),
+                    LoaderSettings.builder().setAutoUpdate(true).build(),
+                    DumperSettings.builder().setEncoding(DumperSettings.Encoding.UNICODE).build(),
+                    updaterSettings
+            );
+
+            if (messagesConfig.reload()) {
+                plugin.getLogger().info("messages.yml dosyası güncellendi. (Yeni ayarlar eklendi)");
+            }
+
+        } catch (IOException | NullPointerException e) {
+            plugin.getLogger().log(Level.SEVERE, "messages.yml dosyası oluşturulamadı veya yüklenemedi!", e);
         }
-        messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
     }
 
-    /**
-     * Konfigürasyondan tek bir mesaj satırını alır ve renk kodlarını çevirir.
-     * @param path Mesajın yolu (key).
-     * @return İşlenmiş mesaj.
-     */
     public String getMessage(String path) {
-        return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(messagesConfig.getString(path, "&cMesaj bulunamadı: " + path)));
+        String message = messagesConfig.getString(path, "&cMesaj bulunamadı: " + path);
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
-    /**
-     * Konfigürasyondan bir mesaj listesini alır ve her satırın renk kodunu çevirir.
-     * @param path Mesaj listesinin yolu (key).
-     * @return İşlenmiş mesajların listesi.
-     */
     public List<String> getMessageList(String path) {
+        if (!messagesConfig.contains(path)) {
+            return Collections.emptyList();
+        }
         return messagesConfig.getStringList(path).stream()
                 .map(msg -> ChatColor.translateAlternateColorCodes('&', msg))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Bir oyuncuya veya konsola tek bir mesaj gönderir.
-     * @param sender Mesajın gönderileceği kişi.
-     * @param path Mesajın yolu (key).
-     */
     public void sendMessage(CommandSender sender, String path) {
         sender.sendMessage(getMessage(path));
     }
 
-    /**
-     * Bir oyuncuya veya konsola mesaj listesi gönderir.
-     * @param sender Mesajın gönderileceği kişi.
-     * @param path Mesaj listesinin yolu (key).
-     */
     public void sendMessageList(CommandSender sender, String path) {
         List<String> messages = getMessageList(path);
         if (messages.isEmpty()) {
             String singleMessage = messagesConfig.getString(path);
-            if(singleMessage != null && !singleMessage.isEmpty()){
+            if (singleMessage != null && !singleMessage.isEmpty()) {
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', singleMessage));
             }
             return;

@@ -42,7 +42,6 @@ public class InterestAccountListGUI extends PaginatedMenu<InterestAccount> {
     private final InterestService interestService;
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    // O an menüde gösterilen hesapları ve slotlarını saklamak için bir harita.
     private final Map<Integer, InterestAccount> displayedAccounts = new HashMap<>();
 
     public InterestAccountListGUI(PlayerMenuUtility playerMenuUtility, BenthKese plugin, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService) {

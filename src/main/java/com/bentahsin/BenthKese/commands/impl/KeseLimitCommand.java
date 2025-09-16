@@ -40,18 +40,16 @@ public class KeseLimitCommand implements ISubCommand {
 
     @Override
     public String getPermission() {
-        return "benthkese.command.limit"; // Ana limit komutu için genel bir yetki
+        return "benthkese.command.limit";
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        // Eğer argüman yoksa (/kese limit), varsayılan eylemi (listelemeyi) yap.
         if (args.length == 0) {
             handleListLimits(sender);
             return;
         }
 
-        // Eğer argüman varsa, bunu bir alt komut olarak ele al.
         String subCommandName = args[0].toLowerCase();
         ISubCommand subCommand = subCommands.get(subCommandName);
 
@@ -65,13 +63,11 @@ public class KeseLimitCommand implements ISubCommand {
             return;
         }
 
-        // Argümanları alt komuta doğru şekilde ilet.
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
         subCommand.execute(sender, subArgs);
     }
 
     private void handleListLimits(CommandSender sender) {
-        // Bu, bu sınıfın eski `execute` metodunun içeriğidir.
         messageManager.sendMessageList(sender, "limit-info.header");
 
         Map<Integer, LimitLevel> levels = limitManager.getAllLevels();
@@ -96,13 +92,11 @@ public class KeseLimitCommand implements ISubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            // Kendi alt komutları için tab tamamlama yap.
             return subCommands.keySet().stream()
                     .filter(name -> name.startsWith(args[0].toLowerCase()))
                     .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         }
 
-        // Tab tamamlamayı ilgili alt komuta devret.
         ISubCommand subCommand = subCommands.get(args[0].toLowerCase());
         if (subCommand != null) {
             return subCommand.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length));

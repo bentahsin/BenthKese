@@ -27,3 +27,6 @@ limit-levels:
     cost: 0.0 # Son seviye, yükseltme maliyeti yok.
     send-limit: -1.0 # -1 sonsuz limit anlamına gelir.
     receive-limit: -1.0
+
+# Lütfen bu satırı değiştirmeyin! Eklentinin otomatik güncelleme yapması için gereklidir.
+config-version: 1

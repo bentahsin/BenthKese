@@ -103,7 +103,6 @@ public class KeseKoyCommand implements ISubCommand {
             }
             storageService.savePlayerData(playerData);
 
-            // Loglama
             storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.DEPOSIT, amount, itemBirim, System.currentTimeMillis()));
 
             String successMessage = messageManager.getMessage("deposit-success")

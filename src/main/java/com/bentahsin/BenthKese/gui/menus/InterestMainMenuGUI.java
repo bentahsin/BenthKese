@@ -19,11 +19,11 @@ import com.bentahsin.BenthKese.services.InterestService;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import com.bentahsin.BenthKese.utils.AnvilGUIHelper;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -84,7 +84,7 @@ public class InterestMainMenuGUI extends Menu {
 
     private void openAmountAnvil() {
         Player player = playerMenuUtility.getOwner();
-        ConfigurationSection section = menuManager.getMenuSection(MENU_KEY + ".anvil-amount");
+        Section section = menuManager.getMenuSection(MENU_KEY + ".anvil-amount");
         if (section == null) {
             player.sendMessage(ChatColor.RED + "Hata: " + MENU_KEY + ".anvil-amount yapılandırması bulunamadı!");
             return;
@@ -111,7 +111,7 @@ public class InterestMainMenuGUI extends Menu {
         Player player = playerMenuUtility.getOwner();
         double amount = playerMenuUtility.getTemporaryAmount();
 
-        ConfigurationSection section = menuManager.getMenuSection(MENU_KEY + ".anvil-duration");
+        Section section = menuManager.getMenuSection(MENU_KEY + ".anvil-duration");
         if (section == null) {
             player.sendMessage(ChatColor.RED + "Hata: " + MENU_KEY + ".anvil-duration yapılandırması bulunamadı!");
             return;

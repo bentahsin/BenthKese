@@ -16,18 +16,16 @@ import java.util.UUID;
  */
 public class InterestAccount {
 
-    private int id; // Veritabanındaki genel benzersiz ID (PRIMARY KEY)
-    private int accountId; // Oyuncu başına benzersiz ID (örn: oyuncunun 1., 2. hesabı)
+    private int id;
+    private int accountId;
     private UUID playerUuid;
-    private double principal; // Anapara
-    private double interestRate; // Bu hesaba uygulanan faiz oranı
-    private long startTime; // Hesabın oluşturulduğu milisaniye zaman damgası
-    private long endTime; // Hesabın vadesinin dolacağı milisaniye zaman damgası
+    private double principal;
+    private double interestRate;
+    private long startTime;
+    private long endTime;
 
-    // Boş constructor (Gerektiğinde kullanılabilir)
     public InterestAccount() {}
 
-    // Tüm alanları içeren constructor
     public InterestAccount(int id, int accountId, UUID playerUuid, double principal, double interestRate, long startTime, long endTime) {
         this.id = id;
         this.accountId = accountId;
@@ -38,7 +36,6 @@ public class InterestAccount {
         this.endTime = endTime;
     }
 
-    // Getter ve Setter'lar
     public int getId() {
         return id;
     }

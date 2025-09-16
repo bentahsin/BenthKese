@@ -41,13 +41,11 @@ public class InterestService {
      */
     public void createAccount(Player player, double amount, String durationString) {
         if (!configManager.isInterestEnabled()) {
-            // Bu mesajı messages.yml'e ekle
             messageManager.sendMessage(player, "interest.error-disabled");
             return;
         }
 
         if (amount < configManager.getMinInterestDeposit() || amount > configManager.getMaxInterestDeposit()) {
-            // Bu mesajı messages.yml'e ekle
             player.sendMessage(messageManager.getMessage("interest.error-amount-range")
                     .replace("{min}", numberFormat.format(configManager.getMinInterestDeposit()))
                     .replace("{max}", numberFormat.format(configManager.getMaxInterestDeposit())));
@@ -77,12 +75,11 @@ public class InterestService {
             long rateTimeMillis = TimeUtil.parseTime(String.valueOf(rateMap.get("time")));
             if (durationMillis >= rateTimeMillis) {
                 applicableRate = (Double) rateMap.get("rate");
-                break; // Sıralı olduğu için bulduğumuz ilk oran doğrudur.
+                break;
             }
         }
 
         if (applicableRate < 0) {
-            // Bu mesajı messages.yml'e ekle
             messageManager.sendMessage(player, "interest.error-no-rate-found");
             return;
         }
@@ -127,7 +124,6 @@ public class InterestService {
         boolean isMature = System.currentTimeMillis() >= account.getEndTime();
 
         if (isMature) {
-            // Vadesi dolmuş, faiziyle çek
             double finalAmount = account.getFinalAmount();
             economy.depositPlayer(player, finalAmount);
             storageService.deleteInterestAccount(player.getUniqueId(), accountId);
@@ -135,7 +131,6 @@ public class InterestService {
                     .replace("{id}", String.valueOf(accountId))
                     .replace("{toplam_miktar}", numberFormat.format(finalAmount)));
         } else {
-            // Vadesi dolmamış, erken bozma
             double principal = account.getPrincipal();
             economy.depositPlayer(player, principal);
             storageService.deleteInterestAccount(player.getUniqueId(), accountId);

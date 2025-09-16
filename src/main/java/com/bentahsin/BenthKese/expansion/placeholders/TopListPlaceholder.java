@@ -34,7 +34,7 @@ public class TopListPlaceholder implements IPlaceholder {
     }
 
     private void updateCache() {
-        if (System.currentTimeMillis() - lastCacheTime > 300000) { // 5 dakikalık cache
+        if (System.currentTimeMillis() - lastCacheTime > 300000) {
             cachedTopPlayers = topListFetcher.apply(10);
             lastCacheTime = System.currentTimeMillis();
         }
@@ -50,7 +50,6 @@ public class TopListPlaceholder implements IPlaceholder {
         if (isName) {
             return entry.getPlayerName();
         } else {
-            // Değer metin mi sayı mı kontrol et
             if (entry.getStringValue() != null) {
                 return entry.getStringValue();
             } else {

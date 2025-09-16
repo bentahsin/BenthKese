@@ -20,7 +20,6 @@ public class BakiyeFormattedPlaceholder implements IPlaceholder {
 
     @Override
     public String getValue(OfflinePlayer player) {
-        // NumberFormat.getCurrencyInstance() da kullanılabilir, ancak para birimi simgesi ekler.
         return numberFormat.format(economy.getBalance(player)) + " ⛁";
     }
 }

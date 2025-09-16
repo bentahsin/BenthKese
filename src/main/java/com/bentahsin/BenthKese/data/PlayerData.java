@@ -9,7 +9,6 @@ package com.bentahsin.BenthKese.data;
 
 import java.util.UUID;
 
-// Oyuncunun BenthKese ile ilgili tüm verilerini tutan sınıf.
 public class PlayerData {
 
     private final UUID uuid;
@@ -24,7 +23,7 @@ public class PlayerData {
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
-        this.limitLevel = 1; // Varsayılan seviye
+        this.limitLevel = 1;
         this.dailySent = 0;
         this.dailyReceived = 0;
         this.lastResetTime = System.currentTimeMillis();
@@ -33,7 +32,6 @@ public class PlayerData {
         this.totalTaxPaid = 0;
     }
 
-    // Getter ve Setter'lar
     public UUID getUuid() { return uuid; }
     public int getLimitLevel() { return limitLevel; }
     public void setLimitLevel(int limitLevel) { this.limitLevel = limitLevel; }

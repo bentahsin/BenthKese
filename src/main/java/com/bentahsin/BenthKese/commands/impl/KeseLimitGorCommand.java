@@ -54,10 +54,9 @@ public class KeseLimitGorCommand implements ISubCommand {
         Player player = (Player) sender;
         PlayerData playerData = storageService.getPlayerData(player.getUniqueId());
 
-        // Limitin sıfırlanma zamanı gelmiş mi diye kontrol et
         if (System.currentTimeMillis() - playerData.getLastResetTime() > TimeUnit.DAYS.toMillis(1)) {
             playerData.resetDailyLimits();
-            storageService.savePlayerData(playerData); // Değişikliği kaydet
+            storageService.savePlayerData(playerData);
             messageManager.sendMessage(player, "limit-status.resetted");
         }
 
