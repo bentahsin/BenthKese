@@ -43,6 +43,7 @@ deposit:
 withdraw:
   inventory-full: "&cEnvanterin tamamen dolu! Hiç eşya alamazsın."
   partial-success: "&eEnvanterin dolduğu için istedigin &c{istenen} &eyerine &a{verilen} &eadet &e{birim} &everildi."
+  not-enough-money: "&cKese'den {istenen} altın çekebilmek için {gereken} ⛁ bakiyeye ihtiyacın var."
 
 send-money:
   player-not-found: "&c'{oyuncu}' adlı oyuncu bulunamadı."
