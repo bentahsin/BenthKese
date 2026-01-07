@@ -1,0 +1,21 @@
+name: BenthKese
+version: ${project.version}
+main: com.bentahsin.BenthKese.BenthKeseBootstrap
+author: BenTahsin
+api-version: 1.20
+load: POSTWORLD
+
+depend: [Vault]
+softdepend:
+  - PlaceholderAPI
+
+commands:
+  kese:
+    description: BenthKese ana komutu.
+    usage: /<command> <help|koy|al|gonder|limit>
+    aliases: [benthkese, kesele]
+  keseadmin:
+    description: BenthKese yönetici komutları.
+    usage: /<command> <reload|limit|bakiye>
+    aliases: [ bka ]
+    permission: benthkese.admin

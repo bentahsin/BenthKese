@@ -1,0 +1,21 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.bentahsin</groupId>
+        <artifactId>BenthKese-Parent</artifactId>
+        <version>1.0.2</version>
+    </parent>
+
+    <artifactId>benthkese-bukkit</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.bentahsin</groupId>
+            <artifactId>benthkese-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>
