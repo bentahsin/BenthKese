@@ -1,5 +1,6 @@
 package com.bentahsin.BenthKese.commands.impl;
 
+import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.ISubCommand;
 import com.bentahsin.BenthKese.configuration.ConfigurationManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
@@ -62,6 +63,18 @@ public class KeseAlCommand implements ISubCommand {
             }
         }
 
+        double taxRate = configManager.isWithdrawTaxEnabled() ? configManager.getWithdrawTaxRate() : 0.0;
+
+        double estimatedTotalCost = requestedAmount * (1 + taxRate);
+
+        if (BenthKeseCore.getEconomy().has(player, estimatedTotalCost)) {
+            String message = messageManager.getMessage("withdraw.not-enough-money")
+                    .replace("{istenen}", numberFormat.format(requestedAmount))
+                    .replace("{gereken}", numberFormat.format(estimatedTotalCost));
+            player.sendMessage(message);
+            return;
+        }
+
         int withdrawnAmount = economyService.withdraw(player, requestedAmount);
         String itemBirim = configManager.getEconomyItemMaterial().name().toLowerCase().replace("_", " ");
 
@@ -70,9 +83,8 @@ public class KeseAlCommand implements ISubCommand {
         } else if (withdrawnAmount == 0) {
             messageManager.sendMessage(player, "withdraw.inventory-full");
         } else {
-            double taxRate = configManager.isWithdrawTaxEnabled() ? configManager.getWithdrawTaxRate() : 0.0;
-            double totalCost = withdrawnAmount * (1 + taxRate);
-            double taxAmount = totalCost - withdrawnAmount;
+            double finalTotalCost = withdrawnAmount * (1 + taxRate);
+            double taxAmount = finalTotalCost - withdrawnAmount;
 
             PlayerData playerData = storageService.getPlayerData(player.getUniqueId());
             playerData.incrementTotalTransactions();
@@ -94,7 +106,7 @@ public class KeseAlCommand implements ISubCommand {
                         .replace("{miktar}", numberFormat.format(withdrawnAmount))
                         .replace("{birim}", itemBirim)
                         .replace("{vergi}", numberFormat.format(taxAmount))
-                        .replace("{toplam_maliyet}", numberFormat.format(totalCost))
+                        .replace("{toplam_maliyet}", numberFormat.format(finalTotalCost))
                 );
             }
         }
