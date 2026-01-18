@@ -48,7 +48,7 @@ public class KeseYatirGUI extends Menu {
         this.economyService = economyService;
         this.limitManager = limitManager;
         this.interestService = interestService;
-        this.koyCommandLogic = new KeseKoyCommand(messageManager, economyService, config, storageService);
+        this.koyCommandLogic = new KeseKoyCommand(core, messageManager, economyService, config, storageService);
     }
 
     @Override

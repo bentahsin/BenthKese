@@ -55,7 +55,7 @@ public class KeseLimitGUI extends Menu {
         this.economyService = economyService;
         this.config = config;
         this.interestService = interestService;
-        this.yukseltCommandLogic = new KeseLimitYukseltCommand(messageManager, storageService, limitManager);
+        this.yukseltCommandLogic = new KeseLimitYukseltCommand(core, messageManager, storageService, limitManager);
     }
 
     @Override
