@@ -8,10 +8,7 @@
 package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.PaginatedMenu;
@@ -35,21 +32,21 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
     private final MessageManager messageManager;
     private final IStorageService storageService;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final LimitManager limitManager;
     private final InterestService interestService;
 
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
-    public TransactionHistoryGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService) {
+    public TransactionHistoryGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, BenthConfig config, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.storageService = storageService;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.limitManager = limitManager;
         this.interestService = interestService;
     }
@@ -77,7 +74,7 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
         String itemKey = transaction.getType().name();
         MenuItemConfig itemConfig = menuManager.getMenuItem(MENU_KEY, "item-templates." + itemKey);
 
-        if (itemConfig.getMaterial() == org.bukkit.Material.BARRIER) {
+        if (itemConfig.material() == org.bukkit.Material.BARRIER) {
             itemConfig = menuManager.getMenuItem(MENU_KEY, "item-templates.UNKNOWN");
         }
 
@@ -116,7 +113,7 @@ public class TransactionHistoryGUI extends PaginatedMenu<TransactionData> {
 
     @Override
     public Menu getNavigationBackMenu() {
-        return new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService);
+        return new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService);
     }
 
 

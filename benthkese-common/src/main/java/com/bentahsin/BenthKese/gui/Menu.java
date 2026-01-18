@@ -103,13 +103,13 @@ public abstract class Menu implements InventoryHolder {
     }
 
     public ItemStack createItemFromConfig(MenuItemConfig config, Map<String, String> placeholders) {
-        ItemStack item = new ItemStack(config.getMaterial(), 1);
+        ItemStack item = new ItemStack(config.material(), 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            String processedName = TextUtil.replacePlaceholders(config.getName(), placeholders);
+            String processedName = TextUtil.replacePlaceholders(config.name(), placeholders);
             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', processedName));
 
-            List<String> processedLore = TextUtil.replacePlaceholders(config.getLore(), placeholders);
+            List<String> processedLore = TextUtil.replacePlaceholders(config.lore(), placeholders);
             meta.setLore(processedLore.stream()
                     .map(line -> ChatColor.translateAlternateColorCodes('&', line))
                     .collect(Collectors.toList()));
@@ -119,7 +119,7 @@ public abstract class Menu implements InventoryHolder {
     }
 
     public void fillEmptySlots(MenuItemConfig fillerConfig) {
-        if (fillerConfig == null || fillerConfig.getMaterial() == Material.AIR) return;
+        if (fillerConfig == null || fillerConfig.material() == Material.AIR) return;
         ItemStack fillerItem = createItemFromConfig(fillerConfig, Collections.emptyMap());
         for (int i = 0; i < getSlots(); i++) {
             if (inventory.getItem(i) == null) {

@@ -8,7 +8,7 @@
 package com.bentahsin.BenthKese.expansion;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.LimitLevel;
 import com.bentahsin.BenthKese.data.PlayerData;
@@ -36,21 +36,21 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final MessageManager messageManager;
-    private final ConfigurationManager configurationManager;
+    private final BenthConfig config;
     private final Economy economy = BenthKeseCore.getEconomy();
     private final Map<String, IPlaceholder> placeholders = new HashMap<>();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    public BenthKeseExpansion(JavaPlugin plugin, IStorageService storageService, LimitManager limitManager, MessageManager messageManager, ConfigurationManager configurationManager) {
+    public BenthKeseExpansion(JavaPlugin plugin, IStorageService storageService, LimitManager limitManager, MessageManager messageManager, BenthConfig config) {
         this.plugin = plugin;
         this.storageService = storageService;
         this.limitManager = limitManager;
         this.messageManager = messageManager;
-        this.configurationManager = configurationManager;
-        registerPlaceholders(storageService, limitManager, messageManager);
+        this.config = config;
+        registerPlaceholders(storageService, limitManager, messageManager, config);
     }
 
-    private void registerPlaceholders(IStorageService storageService, LimitManager limitManager, MessageManager messageManager) {
+    private void registerPlaceholders(IStorageService storageService, LimitManager limitManager, MessageManager messageManager, BenthConfig config) {
         String infiniteText = messageManager.getMessage("limit-info.infinite-text");
         String maxLevelText = messageManager.getMessage("limit-info.max-level-text");
         String yesText = messageManager.getMessage("general.yes");
@@ -64,19 +64,22 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
         addPlaceholder(new LimitSeviyeIdPlaceholder(storageService));
         addPlaceholder(new LimitResetSuresiPlaceholder(storageService));
         addPlaceholder(new BakiyeFormattedPlaceholder());
+
         addPlaceholder(new GenericLimitPlaceholder("limit_gonderme_kullanilan", storageService, limitManager, infiniteText, (pd, ll) -> pd.getDailySent()));
         addPlaceholder(new GenericLimitPlaceholder("limit_gonderme_kalan", storageService, limitManager, infiniteText, (pd, ll) -> ll.getSendLimit() == -1 ? Double.POSITIVE_INFINITY : ll.getSendLimit() - pd.getDailySent()));
         addPlaceholder(new GenericLimitPlaceholder("limit_gonderme_max", storageService, limitManager, infiniteText, (pd, ll) -> ll.getSendLimit() == -1 ? Double.POSITIVE_INFINITY : ll.getSendLimit()));
         addPlaceholder(new GenericLimitPlaceholder("limit_alma_kullanilan", storageService, limitManager, infiniteText, (pd, ll) -> pd.getDailyReceived()));
         addPlaceholder(new GenericLimitPlaceholder("limit_alma_kalan", storageService, limitManager, infiniteText, (pd, ll) -> ll.getReceiveLimit() == -1 ? Double.POSITIVE_INFINITY : ll.getReceiveLimit() - pd.getDailyReceived()));
         addPlaceholder(new GenericLimitPlaceholder("limit_alma_max", storageService, limitManager, infiniteText, (pd, ll) -> ll.getReceiveLimit() == -1 ? Double.POSITIVE_INFINITY : ll.getReceiveLimit()));
+
         addPlaceholder(new FaizHesapSayisiPlaceholder(storageService));
-        addPlaceholder(new FaizHesapMaxPlaceholder(configurationManager));
-        addPlaceholder(new FaizHesapDurumPlaceholder(storageService, configurationManager));
+        addPlaceholder(new FaizHesapMaxPlaceholder(config));
+        addPlaceholder(new FaizHesapDurumPlaceholder(storageService, config));
         addPlaceholder(new FaizYatirimToplamPlaceholder(storageService));
         addPlaceholder(new FaizToplamKazancPlaceholder(storageService));
         addPlaceholder(new FaizSonrakiKazancPlaceholder(storageService, "faiz_sonraki_kazanc_miktar"));
         addPlaceholder(new FaizSonrakiKazancPlaceholder(storageService, "faiz_sonraki_kazanc_sure"));
+
         if (!(storageService instanceof YamlStorageService)) {
             addPlaceholder(new PlayerRankPlaceholder(storageService));
             for (int i = 1; i <= 10; i++) {
@@ -86,12 +89,13 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
                 addPlaceholder(new TopListPlaceholder("top_seviye_deger_" + i, i, false, storageService::getTopPlayersByLimitLevel));
             }
         }
-        addPlaceholder(new VergiOranPlaceholder("vergi_yatirma_oran_yuzde", configurationManager));
-        addPlaceholder(new VergiOranPlaceholder("vergi_cekme_oran_yuzde", configurationManager));
-        addPlaceholder(new VergiOranPlaceholder("vergi_gonderme_oran_yuzde", configurationManager));
-        addPlaceholder(new EkonomiItemAdiPlaceholder(configurationManager));
+
+        addPlaceholder(new VergiOranPlaceholder("vergi_yatirma_oran_yuzde", config));
+        addPlaceholder(new VergiOranPlaceholder("vergi_cekme_oran_yuzde", config));
+        addPlaceholder(new VergiOranPlaceholder("vergi_gonderme_oran_yuzde", config));
+        addPlaceholder(new EkonomiItemAdiPlaceholder(config));
         addPlaceholder(new LimitGondermeAsildiMiPlaceholder(storageService, limitManager));
-        addPlaceholder(new FaizHesapAcabilirMiPlaceholder(storageService, configurationManager));
+        addPlaceholder(new FaizHesapAcabilirMiPlaceholder(storageService, config));
         addPlaceholder(new BakiyeRawPlaceholder());
         addPlaceholder(new SiralamaBakiyeHedefKalanPlaceholder(storageService));
         addPlaceholder(new GenericStatisticPlaceholder("toplam_islem_sayisi", storageService, PlayerData::getTotalTransactions, false));

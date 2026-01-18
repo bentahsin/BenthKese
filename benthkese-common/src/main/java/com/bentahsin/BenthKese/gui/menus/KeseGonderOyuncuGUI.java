@@ -8,7 +8,7 @@
 package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
@@ -32,16 +32,16 @@ public class KeseGonderOyuncuGUI {
     private final MessageManager messageManager;
     private final IStorageService storageService;
     private final LimitManager limitManager;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
 
-    public KeseGonderOyuncuGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, ConfigurationManager configManager) {
+    public KeseGonderOyuncuGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, BenthConfig config) {
         this.core = core;
         this.playerMenuUtility = playerMenuUtility;
         this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.storageService = storageService;
         this.limitManager = limitManager;
-        this.configManager = configManager;
+        this.config = config;
     }
 
     public void open() {
@@ -64,7 +64,7 @@ public class KeseGonderOyuncuGUI {
                 (targetPlayer) -> {
                     playerMenuUtility.setTargetPlayerUUID(targetPlayer.getUniqueId());
                     return Collections.singletonList(AnvilGUI.ResponseAction.run(() ->
-                            new KeseGonderMiktarGUI(playerMenuUtility, core, menuManager, messageManager, storageService, limitManager, configManager).open()
+                            new KeseGonderMiktarGUI(playerMenuUtility, core, menuManager, messageManager, storageService, limitManager, config).open()
                     ));
                 }
         );

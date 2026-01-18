@@ -9,10 +9,7 @@ package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.impl.KeseKoyCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -35,23 +32,23 @@ public class KeseYatirGUI extends Menu {
     private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final InterestService interestService;
     private final KeseKoyCommand koyCommandLogic;
 
-    public KeseYatirGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
+    public KeseYatirGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, BenthConfig config, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
         this.messageManager = messageManager;
-        this.configManager = configManager;
+        this.config = config;
         this.storageService = storageService;
         this.economyService = economyService;
         this.limitManager = limitManager;
         this.interestService = interestService;
-        this.koyCommandLogic = new KeseKoyCommand(messageManager, economyService, configManager, storageService);
+        this.koyCommandLogic = new KeseKoyCommand(messageManager, economyService, config, storageService);
     }
 
     @Override
@@ -71,21 +68,21 @@ public class KeseYatirGUI extends Menu {
         MenuItemConfig inventoryConfig = menuManager.getMenuItem(MENU_KEY, "deposit-inventory");
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
 
-        actions.put(anvilConfig.getSlot(), this::openDepositAnvil);
-        actions.put(handConfig.getSlot(), () -> {
+        actions.put(anvilConfig.slot(), this::openDepositAnvil);
+        actions.put(handConfig.slot(), () -> {
             koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{"el"});
             playerMenuUtility.getOwner().closeInventory();
         });
-        actions.put(inventoryConfig.getSlot(), () -> {
+        actions.put(inventoryConfig.slot(), () -> {
             koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{"envanter"});
             playerMenuUtility.getOwner().closeInventory();
         });
-        actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
+        actions.put(backConfig.slot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService).open());
 
-        inventory.setItem(anvilConfig.getSlot(), createItemFromConfig(anvilConfig, Collections.emptyMap()));
-        inventory.setItem(handConfig.getSlot(), createItemFromConfig(handConfig, Collections.emptyMap()));
-        inventory.setItem(inventoryConfig.getSlot(), createItemFromConfig(inventoryConfig, Collections.emptyMap()));
-        inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
+        inventory.setItem(anvilConfig.slot(), createItemFromConfig(anvilConfig, Collections.emptyMap()));
+        inventory.setItem(handConfig.slot(), createItemFromConfig(handConfig, Collections.emptyMap()));
+        inventory.setItem(inventoryConfig.slot(), createItemFromConfig(inventoryConfig, Collections.emptyMap()));
+        inventory.setItem(backConfig.slot(), createItemFromConfig(backConfig, Collections.emptyMap()));
 
         addDepositButton(21, 16);
         addDepositButton(22, 32);
@@ -113,7 +110,7 @@ public class KeseYatirGUI extends Menu {
                 playerMenuUtility.getOwner(),
                 messageManager,
                 messageManager.getMessage("gui.deposit-menu.anvil-title"),
-                new ItemStack(menuManager.getMenuItem(MENU_KEY, "anvil-input").getMaterial()),
+                new ItemStack(menuManager.getMenuItem(MENU_KEY, "anvil-input").material()),
                 (amount) -> {
                     koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{String.valueOf(amount.intValue())});
                     return Collections.singletonList(AnvilGUI.ResponseAction.close());

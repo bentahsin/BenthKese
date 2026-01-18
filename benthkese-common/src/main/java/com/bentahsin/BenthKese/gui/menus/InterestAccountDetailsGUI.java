@@ -8,10 +8,7 @@
 package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.data.InterestAccount;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
@@ -39,7 +36,7 @@ public class InterestAccountDetailsGUI extends Menu {
     private final InterestService interestService;
     private final IStorageService storageService;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final LimitManager limitManager;
 
     private final InterestAccount account;
@@ -47,7 +44,7 @@ public class InterestAccountDetailsGUI extends Menu {
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
-    public InterestAccountDetailsGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, InterestService interestService, InterestAccount account, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager) {
+    public InterestAccountDetailsGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, InterestService interestService, InterestAccount account, IStorageService storageService, EconomyService economyService, BenthConfig config, LimitManager limitManager) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
@@ -56,7 +53,7 @@ public class InterestAccountDetailsGUI extends Menu {
         this.account = account;
         this.storageService = storageService;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.limitManager = limitManager;
     }
 
@@ -86,20 +83,20 @@ public class InterestAccountDetailsGUI extends Menu {
         placeholders.put("{baslangic}", dateFormat.format(new Date(account.getStartTime())));
         placeholders.put("{bitis}", dateFormat.format(new Date(account.getEndTime())));
         placeholders.put("{kalan_sure}", com.bentahsin.BenthKese.utils.TimeUtil.formatDuration(account.getEndTime() - System.currentTimeMillis()));
-        inventory.setItem(infoConfig.getSlot(), createItemFromConfig(infoConfig, placeholders));
+        inventory.setItem(infoConfig.slot(), createItemFromConfig(infoConfig, placeholders));
 
 
         if (isMature) {
             MenuItemConfig claimConfig = menuManager.getMenuItem(MENU_KEY, "claim-button");
-            actions.put(claimConfig.getSlot(), () -> {
+            actions.put(claimConfig.slot(), () -> {
                 interestService.processAccountAction(player, account.getAccountId());
                 openListMenu();
             });
-            inventory.setItem(claimConfig.getSlot(), createItemFromConfig(claimConfig, placeholders));
+            inventory.setItem(claimConfig.slot(), createItemFromConfig(claimConfig, placeholders));
 
         } else {
             MenuItemConfig breakConfig = menuManager.getMenuItem(MENU_KEY, "break-button");
-            actions.put(breakConfig.getSlot(), () -> {
+            actions.put(breakConfig.slot(), () -> {
                 MenuItemConfig confirmItemConfig = menuManager.getMenuItem(MENU_KEY, "break-confirmation-item");
                 ItemStack infoItem = createItemFromConfig(confirmItemConfig, placeholders);
 
@@ -112,12 +109,12 @@ public class InterestAccountDetailsGUI extends Menu {
 
                 new ConfirmationGUI(playerMenuUtility, menuManager, infoItem, onConfirm, onCancel).open();
             });
-            inventory.setItem(breakConfig.getSlot(), createItemFromConfig(breakConfig, placeholders));
+            inventory.setItem(breakConfig.slot(), createItemFromConfig(breakConfig, placeholders));
         }
 
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
-        actions.put(backConfig.getSlot(), this::openListMenu);
-        inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, new HashMap<>()));
+        actions.put(backConfig.slot(), this::openListMenu);
+        inventory.setItem(backConfig.slot(), createItemFromConfig(backConfig, new HashMap<>()));
 
 
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
@@ -130,7 +127,7 @@ public class InterestAccountDetailsGUI extends Menu {
         new InterestAccountListGUI(
                 playerMenuUtility, core, menuManager,
                 messageManager, storageService, economyService,
-                configManager, limitManager, interestService
+                config, limitManager, interestService
         ).open();
     }
 }

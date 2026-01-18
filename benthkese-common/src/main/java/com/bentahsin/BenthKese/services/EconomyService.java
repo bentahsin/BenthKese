@@ -8,7 +8,7 @@
 package com.bentahsin.BenthKese.services;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -18,10 +18,10 @@ import org.bukkit.inventory.PlayerInventory;
 public class EconomyService {
 
     private final Economy economy = BenthKeseCore.getEconomy();
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
 
-    public EconomyService(ConfigurationManager configManager) {
-        this.configManager = configManager;
+    public EconomyService(BenthConfig config) {
+        this.config = config;
     }
 
     /**
@@ -31,14 +31,16 @@ public class EconomyService {
      * @return İşlem sonrası oyuncunun kesesine geçen net miktar. Yetersiz eşya varsa -1 döner.
      */
     public double deposit(Player player, int amount) {
-        Material itemType = configManager.getEconomyItemMaterial();
+        Material itemType = config.economyItem;
+
         if (!player.getInventory().containsAtLeast(new ItemStack(itemType), amount)) {
             return -1;
         }
 
         double netAmount = amount;
-        if (configManager.isDepositTaxEnabled()) {
-            double tax = amount * configManager.getDepositTaxRate();
+
+        if (config.taxes.deposit.enabled) {
+            double tax = amount * config.taxes.deposit.rate;
             netAmount = amount - tax;
         }
 
@@ -53,7 +55,7 @@ public class EconomyService {
      * @return Envanterden yatırılan toplam eşya miktarı. Hiç eşya yoksa 0 döner.
      */
     public int depositInventory(Player player) {
-        Material itemType = configManager.getEconomyItemMaterial();
+        Material itemType = config.economyItem;
         int totalAmount = 0;
         for (ItemStack item : player.getInventory().getContents()) {
             if (item != null && item.getType() == itemType) {
@@ -76,15 +78,16 @@ public class EconomyService {
      */
     public int withdraw(Player player, int requestedAmount) {
         double totalCost = requestedAmount;
-        if (configManager.isWithdrawTaxEnabled()) {
-            totalCost = requestedAmount * (1 + configManager.getWithdrawTaxRate());
+
+        if (config.taxes.withdraw.enabled) {
+            totalCost = requestedAmount * (1 + config.taxes.withdraw.rate);
         }
 
         if (!economy.has(player, totalCost)) {
             return -1;
         }
 
-        int freeSpace = getFreeSpaceFor(player.getInventory(), configManager.getEconomyItemMaterial());
+        int freeSpace = getFreeSpaceFor(player.getInventory(), config.economyItem);
         if (freeSpace == 0) {
             return 0;
         }
@@ -92,11 +95,15 @@ public class EconomyService {
         int amountToGive = Math.min(requestedAmount, freeSpace);
 
         if (amountToGive < requestedAmount) {
-            totalCost = amountToGive * (1 + configManager.getWithdrawTaxRate());
+            if (config.taxes.withdraw.enabled) {
+                totalCost = amountToGive * (1 + config.taxes.withdraw.rate);
+            } else {
+                totalCost = amountToGive;
+            }
         }
 
         economy.withdrawPlayer(player, totalCost);
-        player.getInventory().addItem(new ItemStack(configManager.getEconomyItemMaterial(), amountToGive));
+        player.getInventory().addItem(new ItemStack(config.economyItem, amountToGive));
 
         return amountToGive;
     }

@@ -8,10 +8,7 @@
 package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -39,18 +36,18 @@ public class InterestMainMenuGUI extends Menu {
     private final MessageManager messageManager;
     private final IStorageService storageService;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final LimitManager limitManager;
     private final InterestService interestService;
 
-    public InterestMainMenuGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService) {
+    public InterestMainMenuGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, BenthConfig config, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.storageService = storageService;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.limitManager = limitManager;
         this.interestService = interestService;
     }
@@ -71,13 +68,13 @@ public class InterestMainMenuGUI extends Menu {
         MenuItemConfig createConfig = menuManager.getMenuItem(MENU_KEY, "create-account");
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
 
-        actions.put(listConfig.getSlot(), () -> new InterestAccountListGUI(playerMenuUtility, core, menuManager, messageManager, storageService, economyService, configManager, limitManager, interestService).open());
-        actions.put(createConfig.getSlot(), this::openAmountAnvil);
-        actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
+        actions.put(listConfig.slot(), () -> new InterestAccountListGUI(playerMenuUtility, core, menuManager, messageManager, storageService, economyService, config, limitManager, interestService).open());
+        actions.put(createConfig.slot(), this::openAmountAnvil);
+        actions.put(backConfig.slot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService).open());
 
-        inventory.setItem(listConfig.getSlot(), createItemFromConfig(listConfig, Collections.emptyMap()));
-        inventory.setItem(createConfig.getSlot(), createItemFromConfig(createConfig, Collections.emptyMap()));
-        inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
+        inventory.setItem(listConfig.slot(), createItemFromConfig(listConfig, Collections.emptyMap()));
+        inventory.setItem(createConfig.slot(), createItemFromConfig(createConfig, Collections.emptyMap()));
+        inventory.setItem(backConfig.slot(), createItemFromConfig(backConfig, Collections.emptyMap()));
 
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }

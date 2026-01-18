@@ -8,7 +8,7 @@
 package com.bentahsin.BenthKese.commands;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.menus.KeseMainMenuGUI;
@@ -27,25 +27,25 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandManager implements CommandExecutor, TabCompleter {
-    private final BenthKeseCore plugin;
+    private final BenthKeseCore core;
     private final MessageManager messageManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configurationManager;
+    private final BenthConfig config;
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final InterestService interestService;
     private final MenuManager menuManager;
     private final Map<String, ISubCommand> subCommands = new HashMap<>();
 
-    public CommandManager(MessageManager messageManager, BenthKeseCore plugin, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService, MenuManager menuManager) {
+    public CommandManager(MessageManager messageManager, BenthKeseCore core, EconomyService economyService, BenthConfig config, IStorageService storageService, LimitManager limitManager, InterestService interestService, MenuManager menuManager) {
         this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.economyService = economyService;
-        this.configurationManager = configManager;
+        this.config = config;
         this.storageService = storageService;
         this.limitManager = limitManager;
         this.interestService = interestService;
-        this.plugin = plugin;
+        this.core = core;
     }
 
     public void registerCommand(ISubCommand subCommand) {
@@ -56,7 +56,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (args.length == 0) {
             if (sender instanceof Player p) {
-                new KeseMainMenuGUI(plugin.getPlayerMenuUtility(p), plugin, menuManager, messageManager, economyService, configurationManager, storageService, limitManager, interestService).open();
+                new KeseMainMenuGUI(core.getPlayerMenuUtility(p), core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService).open();
             } else {
                 subCommands.get("help").execute(sender, new String[0]);
             }

@@ -9,7 +9,7 @@ package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.impl.KeseGonderCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
@@ -38,12 +38,12 @@ public class KeseGonderMiktarGUI {
     private final MessageManager messageManager;
     private final KeseGonderCommand gonderCommandLogic;
 
-    public KeseGonderMiktarGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, ConfigurationManager configManager) {
+    public KeseGonderMiktarGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, BenthConfig config) {
         this.core = core;
         this.playerMenuUtility = playerMenuUtility;
         this.menuManager = menuManager;
         this.messageManager = messageManager;
-        this.gonderCommandLogic = new KeseGonderCommand(messageManager, storageService, limitManager, configManager);
+        this.gonderCommandLogic = new KeseGonderCommand(core, messageManager, storageService, limitManager, config);
     }
 
     public void open() {

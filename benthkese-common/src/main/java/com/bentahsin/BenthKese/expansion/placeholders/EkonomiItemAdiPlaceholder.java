@@ -1,6 +1,6 @@
 package com.bentahsin.BenthKese.expansion.placeholders;
 
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.expansion.IPlaceholder;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.OfflinePlayer;
@@ -8,10 +8,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class EkonomiItemAdiPlaceholder implements IPlaceholder {
 
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
 
-    public EkonomiItemAdiPlaceholder(ConfigurationManager configManager) {
-        this.configManager = configManager;
+    public EkonomiItemAdiPlaceholder(BenthConfig config) {
+        this.config = config;
     }
 
     @Override
@@ -21,7 +21,7 @@ public class EkonomiItemAdiPlaceholder implements IPlaceholder {
 
     @Override
     public String getValue(OfflinePlayer player) {
-        String itemName = configManager.getEconomyItemMaterial().name().replace('_', ' ');
+        String itemName = config.economyItem.name().replace('_', ' ');
         return WordUtils.capitalizeFully(itemName);
     }
 }

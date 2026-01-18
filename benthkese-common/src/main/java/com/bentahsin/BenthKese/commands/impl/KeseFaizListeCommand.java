@@ -9,7 +9,7 @@ package com.bentahsin.BenthKese.commands.impl;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.ISubCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MenuManager;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.gui.menus.InterestAccountListGUI;
@@ -29,17 +29,17 @@ public class KeseFaizListeCommand implements ISubCommand {
     private final MessageManager messageManager;
     private final IStorageService storageService;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final LimitManager limitManager;
     private final InterestService interestService;
     private final MenuManager menuManager;
 
-    public KeseFaizListeCommand(BenthKeseCore core, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService, MenuManager menuManager) {
+    public KeseFaizListeCommand(BenthKeseCore core, MessageManager messageManager, IStorageService storageService, EconomyService economyService, BenthConfig config, LimitManager limitManager, InterestService interestService, MenuManager menuManager) {
         this.core = core;
         this.messageManager = messageManager;
         this.storageService = storageService;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.limitManager = limitManager;
         this.interestService = interestService;
         this.menuManager = menuManager;
@@ -69,7 +69,7 @@ public class KeseFaizListeCommand implements ISubCommand {
                 messageManager,
                 storageService,
                 economyService,
-                configManager,
+                config,
                 limitManager,
                 interestService
         ).open();

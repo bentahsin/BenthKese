@@ -8,10 +8,7 @@
 package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.data.InterestAccount;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.PaginatedMenu;
@@ -38,13 +35,13 @@ public class InterestAccountListGUI extends PaginatedMenu<InterestAccount> {
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final InterestService interestService;
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
     private final Map<Integer, InterestAccount> displayedAccounts = new HashMap<>();
 
-    public InterestAccountListGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, ConfigurationManager configManager, LimitManager limitManager, InterestService interestService) {
+    public InterestAccountListGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, EconomyService economyService, BenthConfig config, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
@@ -52,7 +49,7 @@ public class InterestAccountListGUI extends PaginatedMenu<InterestAccount> {
         this.storageService = storageService;
         this.limitManager = limitManager;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.interestService = interestService;
     }
 
@@ -169,7 +166,7 @@ public class InterestAccountListGUI extends PaginatedMenu<InterestAccount> {
         new InterestAccountDetailsGUI(
                 playerMenuUtility, core, menuManager,
                 messageManager, interestService, item,
-                storageService, economyService, configManager, limitManager
+                storageService, economyService, config, limitManager
         ).open();
     }
 
@@ -178,7 +175,7 @@ public class InterestAccountListGUI extends PaginatedMenu<InterestAccount> {
         return new InterestMainMenuGUI(
                 playerMenuUtility, core, menuManager,
                 messageManager, storageService, economyService,
-                configManager, limitManager, interestService
+                config, limitManager, interestService
         );
     }
 

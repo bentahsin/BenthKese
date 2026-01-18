@@ -118,8 +118,8 @@ public abstract class PaginatedMenu<T> extends Menu {
             placeholders.put("{onceki_sayfa}", String.valueOf(page));
             placeholders.put("{sayfa}", String.valueOf(page + 1));
 
-            inventory.setItem(prevConfig.getSlot(), createItemFromConfig(prevConfig, placeholders));
-            actions.put(prevConfig.getSlot(), () -> {
+            inventory.setItem(prevConfig.slot(), createItemFromConfig(prevConfig, placeholders));
+            actions.put(prevConfig.slot(), () -> {
                 page--;
                 open();
             });
@@ -131,8 +131,8 @@ public abstract class PaginatedMenu<T> extends Menu {
             placeholders.put("{sonraki_sayfa}", String.valueOf(page + 2));
             placeholders.put("{sayfa}", String.valueOf(page + 1));
 
-            inventory.setItem(nextConfig.getSlot(), createItemFromConfig(nextConfig, placeholders));
-            actions.put(nextConfig.getSlot(), () -> {
+            inventory.setItem(nextConfig.slot(), createItemFromConfig(nextConfig, placeholders));
+            actions.put(nextConfig.slot(), () -> {
                 page++;
                 open();
             });
@@ -140,8 +140,8 @@ public abstract class PaginatedMenu<T> extends Menu {
 
         MenuItemConfig backConfig = getBackButtonConfig();
         if (backConfig != null) {
-            inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
-            actions.put(backConfig.getSlot(), () -> getNavigationBackMenu().open());
+            inventory.setItem(backConfig.slot(), createItemFromConfig(backConfig, Collections.emptyMap()));
+            actions.put(backConfig.slot(), () -> getNavigationBackMenu().open());
         }
     }
 

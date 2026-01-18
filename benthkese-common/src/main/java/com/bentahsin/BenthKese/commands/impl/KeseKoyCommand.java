@@ -7,12 +7,14 @@
  */
 package com.bentahsin.BenthKese.commands.impl;
 
+import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.ISubCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
+import com.bentahsin.BenthKese.eventbridge.BenthBus;
 import com.bentahsin.BenthKese.services.EconomyService;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import org.bukkit.Material;
@@ -29,17 +31,19 @@ import java.util.Locale;
 
 public class KeseKoyCommand implements ISubCommand {
 
+    private final BenthKeseCore core;
     private final MessageManager messageManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final IStorageService storageService;
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
 
-    public KeseKoyCommand(MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService) {
+    public KeseKoyCommand(BenthKeseCore core, MessageManager messageManager, EconomyService economyService, BenthConfig config, IStorageService storageService) {
+        this.core = core;
         this.messageManager = messageManager;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.storageService = storageService;
     }
 
@@ -59,7 +63,8 @@ public class KeseKoyCommand implements ISubCommand {
             sender.sendMessage("Bu komut sadece oyuncular tarafından kullanılabilir.");
             return;
         }
-        String itemBirim = configManager.getEconomyItemMaterial().name().toLowerCase().replace("_", " ");
+
+        String itemBirim = config.economyItem.name().toLowerCase().replace("_", " ");
 
         if (args.length == 0) {
             handleDepositAmount(player, 1, itemBirim);
@@ -102,7 +107,15 @@ public class KeseKoyCommand implements ISubCommand {
             }
             storageService.savePlayerData(playerData);
 
-            storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.DEPOSIT, amount, itemBirim, System.currentTimeMillis()));
+            TransactionData transaction = new TransactionData(
+                    player.getUniqueId(),
+                    TransactionType.DEPOSIT,
+                    (double) amount,
+                    itemBirim,
+                    System.currentTimeMillis()
+            );
+
+            BenthBus.publish(core.getPlugin(), "transaction-log", transaction);
 
             String successMessage = messageManager.getMessage("deposit-success")
                     .replace("{miktar}", numberFormat.format(amount))
@@ -117,7 +130,7 @@ public class KeseKoyCommand implements ISubCommand {
 
     private void handleDepositHand(Player player, String itemBirim) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        Material economyItem = configManager.getEconomyItemMaterial();
+        Material economyItem = config.economyItem;
 
         if (itemInHand.getType() != economyItem) {
             messageManager.sendMessage(player, "deposit.not-holding-economy-item");

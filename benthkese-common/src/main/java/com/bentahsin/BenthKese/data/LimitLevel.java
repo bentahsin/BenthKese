@@ -1,31 +1,26 @@
-/*
- * BenthKese - A modern economy and limit system for Spigot.
- * Copyright (c) 2025 bentahsin.
- *
- * This project is licensed under the MIT License.
- * See the LICENSE file in the project root for full license information.
- */
 package com.bentahsin.BenthKese.data;
 
+import com.bentahsin.configuration.annotation.ConfigPath;
+
 public class LimitLevel {
+    public transient int level;
 
-    private final int level;
-    private final String name;
-    private final double cost;
-    private final double sendLimit;
-    private final double receiveLimit;
+    public String name = "&7Başlangıç";
+    public double cost = 1000.0;
 
-    public LimitLevel(int level, String name, double cost, double sendLimit, double receiveLimit) {
-        this.level = level;
-        this.name = name;
-        this.cost = cost;
-        this.sendLimit = sendLimit;
-        this.receiveLimit = receiveLimit;
-    }
+    @ConfigPath("send-limit")
+    public double sendLimit = 5000.0;
 
-    public int getLevel() { return level; }
+    @ConfigPath("receive-limit")
+    public double receiveLimit = 10000.0;
+
+    public LimitLevel() {}
+
     public String getName() { return name; }
     public double getCost() { return cost; }
     public double getSendLimit() { return sendLimit; }
     public double getReceiveLimit() { return receiveLimit; }
+
+    public void setLevel(int level) { this.level = level; }
+    public int getLevel() { return level; }
 }

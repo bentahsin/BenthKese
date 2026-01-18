@@ -8,10 +8,7 @@
 package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -34,20 +31,20 @@ public class KeseMainMenuGUI extends Menu {
     private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final InterestService interestService;
     private final Economy economy = BenthKeseCore.getEconomy();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    public KeseMainMenuGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
+    public KeseMainMenuGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, BenthConfig config, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.storageService = storageService;
         this.limitManager = limitManager;
         this.interestService = interestService;
@@ -67,43 +64,43 @@ public class KeseMainMenuGUI extends Menu {
     public void setMenuItems() {
         Player p = playerMenuUtility.getOwner();
 
-        Runnable openDepositGUI = () -> new KeseYatirGUI(playerMenuUtility, core, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open();
-        Runnable openWithdrawGUI = () -> new KeseCekGUI(playerMenuUtility, core, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open();
-        Runnable openSendGUI = () -> new KeseGonderOyuncuGUI(playerMenuUtility, core, menuManager, messageManager, storageService, limitManager, configManager).open();
-        Runnable openLimitGUI = () -> new KeseLimitGUI(playerMenuUtility, core, menuManager, messageManager, storageService, limitManager, economyService, configManager, interestService).open();
-        Runnable openInterestGUI = () -> new InterestMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
-        Runnable openHistoryGUI = () -> new TransactionHistoryGUI(playerMenuUtility, core, menuManager, messageManager, storageService, economyService, configManager, limitManager, interestService).open();
+        Runnable openDepositGUI = () -> new KeseYatirGUI(playerMenuUtility, core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService).open();
+        Runnable openWithdrawGUI = () -> new KeseCekGUI(playerMenuUtility, core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService).open();
+        Runnable openSendGUI = () -> new KeseGonderOyuncuGUI(playerMenuUtility, core, menuManager, messageManager, storageService, limitManager, config).open();
+        Runnable openLimitGUI = () -> new KeseLimitGUI(playerMenuUtility, core, menuManager, messageManager, storageService, limitManager, economyService, config, interestService).open();
+        Runnable openInterestGUI = () -> new InterestMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, storageService, economyService, config, limitManager, interestService).open();
+        Runnable openHistoryGUI = () -> new TransactionHistoryGUI(playerMenuUtility, core, menuManager, messageManager, storageService, economyService, config, limitManager, interestService).open();
 
         MenuItemConfig depositConfig = menuManager.getMenuItem(MENU_KEY, "deposit");
-        actions.put(depositConfig.getSlot(), openDepositGUI);
+        actions.put(depositConfig.slot(), openDepositGUI);
 
         MenuItemConfig withdrawConfig = menuManager.getMenuItem(MENU_KEY, "withdraw");
-        actions.put(withdrawConfig.getSlot(), openWithdrawGUI);
+        actions.put(withdrawConfig.slot(), openWithdrawGUI);
 
         MenuItemConfig sendConfig = menuManager.getMenuItem(MENU_KEY, "send");
-        actions.put(sendConfig.getSlot(), openSendGUI);
+        actions.put(sendConfig.slot(), openSendGUI);
 
         MenuItemConfig limitConfig = menuManager.getMenuItem(MENU_KEY, "limit");
-        actions.put(limitConfig.getSlot(), openLimitGUI);
+        actions.put(limitConfig.slot(), openLimitGUI);
 
         MenuItemConfig interestConfig = menuManager.getMenuItem(MENU_KEY, "interest");
-        actions.put(interestConfig.getSlot(), openInterestGUI);
+        actions.put(interestConfig.slot(), openInterestGUI);
 
         MenuItemConfig historyConfig = menuManager.getMenuItem(MENU_KEY, "history");
-        actions.put(historyConfig.getSlot(), openHistoryGUI);
+        actions.put(historyConfig.slot(), openHistoryGUI);
 
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("{bakiye}", numberFormat.format(economy.getBalance(p)));
 
-        inventory.setItem(depositConfig.getSlot(), createItemFromConfig(depositConfig, placeholders));
-        inventory.setItem(withdrawConfig.getSlot(), createItemFromConfig(withdrawConfig, placeholders));
-        inventory.setItem(sendConfig.getSlot(), createItemFromConfig(sendConfig, placeholders));
-        inventory.setItem(limitConfig.getSlot(), createItemFromConfig(limitConfig, placeholders));
-        inventory.setItem(interestConfig.getSlot(), createItemFromConfig(interestConfig, placeholders));
-        inventory.setItem(historyConfig.getSlot(), createItemFromConfig(historyConfig, placeholders));
+        inventory.setItem(depositConfig.slot(), createItemFromConfig(depositConfig, placeholders));
+        inventory.setItem(withdrawConfig.slot(), createItemFromConfig(withdrawConfig, placeholders));
+        inventory.setItem(sendConfig.slot(), createItemFromConfig(sendConfig, placeholders));
+        inventory.setItem(limitConfig.slot(), createItemFromConfig(limitConfig, placeholders));
+        inventory.setItem(interestConfig.slot(), createItemFromConfig(interestConfig, placeholders));
+        inventory.setItem(historyConfig.slot(), createItemFromConfig(historyConfig, placeholders));
 
         MenuItemConfig balanceConfig = menuManager.getMenuItem(MENU_KEY, "balance-display");
-        inventory.setItem(balanceConfig.getSlot(), createItemFromConfig(balanceConfig, placeholders));
+        inventory.setItem(balanceConfig.slot(), createItemFromConfig(balanceConfig, placeholders));
 
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }

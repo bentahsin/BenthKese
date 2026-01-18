@@ -9,10 +9,7 @@ package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.impl.KeseAlCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.gui.Menu;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
 import com.bentahsin.BenthKese.services.EconomyService;
@@ -35,23 +32,23 @@ public class KeseCekGUI extends Menu {
     private final MenuManager menuManager;
     private final MessageManager messageManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final InterestService interestService;
     private final KeseAlCommand alCommandLogic;
 
-    public KeseCekGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
+    public KeseCekGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, EconomyService economyService, BenthConfig config, IStorageService storageService, LimitManager limitManager, InterestService interestService) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
         this.messageManager = messageManager;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.storageService = storageService;
         this.limitManager = limitManager;
         this.interestService = interestService;
-        this.alCommandLogic = new KeseAlCommand(messageManager, economyService, configManager, storageService);
+        this.alCommandLogic = new KeseAlCommand(core, messageManager, economyService, config, storageService);
     }
 
     @Override
@@ -69,11 +66,11 @@ public class KeseCekGUI extends Menu {
         MenuItemConfig anvilConfig = menuManager.getMenuItem(MENU_KEY, "anvil-input");
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
 
-        actions.put(anvilConfig.getSlot(), this::openWithdrawAnvil);
-        actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, configManager, storageService, limitManager, interestService).open());
+        actions.put(anvilConfig.slot(), this::openWithdrawAnvil);
+        actions.put(backConfig.slot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService).open());
 
-        inventory.setItem(anvilConfig.getSlot(), createItemFromConfig(anvilConfig, Collections.emptyMap()));
-        inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, Collections.emptyMap()));
+        inventory.setItem(anvilConfig.slot(), createItemFromConfig(anvilConfig, Collections.emptyMap()));
+        inventory.setItem(backConfig.slot(), createItemFromConfig(backConfig, Collections.emptyMap()));
 
         addWithdrawButton(13, 16);
         addWithdrawButton(14, 32);
@@ -101,7 +98,7 @@ public class KeseCekGUI extends Menu {
                 playerMenuUtility.getOwner(),
                 messageManager,
                 messageManager.getMessage("gui.withdraw-menu.anvil-title"),
-                new ItemStack(menuManager.getMenuItem(MENU_KEY, "anvil-input").getMaterial()),
+                new ItemStack(menuManager.getMenuItem(MENU_KEY, "anvil-input").material()),
                 (amount) -> {
                     alCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{String.valueOf(amount.intValue())});
                     return Collections.singletonList(AnvilGUI.ResponseAction.close());

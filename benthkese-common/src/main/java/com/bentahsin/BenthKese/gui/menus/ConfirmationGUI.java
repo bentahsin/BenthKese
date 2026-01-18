@@ -54,12 +54,12 @@ public class ConfirmationGUI extends Menu {
         Section section = menuManager.getMenuSection(MENU_KEY + ".items");
         int infoSlot = section != null ? section.getInt("info-item-slot", 13) : 13;
 
-        actions.put(confirmConfig.getSlot(), onConfirm);
-        actions.put(cancelConfig.getSlot(), onCancel);
+        actions.put(confirmConfig.slot(), onConfirm);
+        actions.put(cancelConfig.slot(), onCancel);
 
         inventory.setItem(infoSlot, infoItem);
-        inventory.setItem(confirmConfig.getSlot(), createItemFromConfig(confirmConfig, Collections.emptyMap()));
-        inventory.setItem(cancelConfig.getSlot(), createItemFromConfig(cancelConfig, Collections.emptyMap()));
+        inventory.setItem(confirmConfig.slot(), createItemFromConfig(confirmConfig, Collections.emptyMap()));
+        inventory.setItem(cancelConfig.slot(), createItemFromConfig(cancelConfig, Collections.emptyMap()));
 
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }

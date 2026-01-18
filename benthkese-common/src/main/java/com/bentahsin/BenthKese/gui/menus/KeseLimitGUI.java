@@ -9,10 +9,7 @@ package com.bentahsin.BenthKese.gui.menus;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.impl.KeseLimitYukseltCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuItemConfig;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
 import com.bentahsin.BenthKese.data.LimitLevel;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.gui.Menu;
@@ -42,13 +39,13 @@ public class KeseLimitGUI extends Menu {
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configurationManager;
+    private final BenthConfig config;
     private final InterestService interestService;
     private final KeseLimitYukseltCommand yukseltCommandLogic;
     private final Economy economy = BenthKeseCore.getEconomy();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    public KeseLimitGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, EconomyService economyService, ConfigurationManager configManager, InterestService interestService) {
+    public KeseLimitGUI(PlayerMenuUtility playerMenuUtility, BenthKeseCore core, MenuManager menuManager, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, EconomyService economyService, BenthConfig config, InterestService interestService) {
         super(playerMenuUtility);
         this.core = core;
         this.menuManager = menuManager;
@@ -56,7 +53,7 @@ public class KeseLimitGUI extends Menu {
         this.storageService = storageService;
         this.limitManager = limitManager;
         this.economyService = economyService;
-        this.configurationManager = configManager;
+        this.config = config;
         this.interestService = interestService;
         this.yukseltCommandLogic = new KeseLimitYukseltCommand(messageManager, storageService, limitManager);
     }
@@ -99,7 +96,7 @@ public class KeseLimitGUI extends Menu {
         statusPlaceholders.put("{kalan}", kalanSend);
 
         MenuItemConfig statusConfig = menuManager.getMenuItem(MENU_KEY, "status-display");
-        inventory.setItem(statusConfig.getSlot(), createItemFromConfig(statusConfig, statusPlaceholders));
+        inventory.setItem(statusConfig.slot(), createItemFromConfig(statusConfig, statusPlaceholders));
 
         LimitLevel nextLevel = limitManager.getNextLevel(playerData.getLimitLevel());
         if (nextLevel != null) {
@@ -120,24 +117,24 @@ public class KeseLimitGUI extends Menu {
                 };
                 Runnable onCancel = this::open;
 
-                actions.put(upgradeConfig.getSlot(), () -> new ConfirmationGUI(playerMenuUtility, menuManager, infoItem, onConfirm, onCancel).open());
-                inventory.setItem(upgradeConfig.getSlot(), createItemFromConfig(upgradeConfig, upgradePlaceholders));
+                actions.put(upgradeConfig.slot(), () -> new ConfirmationGUI(playerMenuUtility, menuManager, infoItem, onConfirm, onCancel).open());
+                inventory.setItem(upgradeConfig.slot(), createItemFromConfig(upgradeConfig, upgradePlaceholders));
 
             } else {
                 upgradePlaceholders.put("{bakiye}", numberFormat.format(economy.getBalance(player)));
                 MenuItemConfig failConfig = menuManager.getMenuItem(MENU_KEY, "upgrade-fail");
 
-                actions.put(failConfig.getSlot(), () -> player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f));
-                inventory.setItem(failConfig.getSlot(), createItemFromConfig(failConfig, upgradePlaceholders));
+                actions.put(failConfig.slot(), () -> player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f));
+                inventory.setItem(failConfig.slot(), createItemFromConfig(failConfig, upgradePlaceholders));
             }
         } else {
             MenuItemConfig maxLevelConfig = menuManager.getMenuItem(MENU_KEY, "max-level");
-            inventory.setItem(maxLevelConfig.getSlot(), createItemFromConfig(maxLevelConfig, new HashMap<>()));
+            inventory.setItem(maxLevelConfig.slot(), createItemFromConfig(maxLevelConfig, new HashMap<>()));
         }
 
         MenuItemConfig backConfig = menuManager.getMenuItem(MENU_KEY, "back-button");
-        actions.put(backConfig.getSlot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, configurationManager, storageService, limitManager, interestService).open());
-        inventory.setItem(backConfig.getSlot(), createItemFromConfig(backConfig, new HashMap<>()));
+        actions.put(backConfig.slot(), () -> new KeseMainMenuGUI(playerMenuUtility, core, menuManager, messageManager, economyService, config, storageService, limitManager, interestService).open());
+        inventory.setItem(backConfig.slot(), createItemFromConfig(backConfig, new HashMap<>()));
 
         fillEmptySlots(menuManager.getMenuItem(MENU_KEY, "filler-item"));
     }

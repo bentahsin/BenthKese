@@ -8,7 +8,7 @@
 package com.bentahsin.BenthKese.services;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.InterestAccount;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
@@ -25,14 +25,14 @@ import java.util.Optional;
 public class InterestService {
 
     private final IStorageService storageService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final MessageManager messageManager;
     private final Economy economy = BenthKeseCore.getEconomy();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    public InterestService(IStorageService storageService, ConfigurationManager configManager, MessageManager messageManager) {
+    public InterestService(IStorageService storageService, BenthConfig config, MessageManager messageManager) {
         this.storageService = storageService;
-        this.configManager = configManager;
+        this.config = config;
         this.messageManager = messageManager;
     }
 
@@ -40,15 +40,15 @@ public class InterestService {
      * Oyuncu için yeni bir vadeli hesap oluşturur.
      */
     public void createAccount(Player player, double amount, String durationString) {
-        if (!configManager.isInterestEnabled()) {
+        if (!config.interest.enabled) {
             messageManager.sendMessage(player, "interest.error-disabled");
             return;
         }
 
-        if (amount < configManager.getMinInterestDeposit() || amount > configManager.getMaxInterestDeposit()) {
+        if (amount < config.interest.minDeposit || amount > config.interest.maxDeposit) {
             player.sendMessage(messageManager.getMessage("interest.error-amount-range")
-                    .replace("{min}", numberFormat.format(configManager.getMinInterestDeposit()))
-                    .replace("{max}", numberFormat.format(configManager.getMaxInterestDeposit())));
+                    .replace("{min}", numberFormat.format(config.interest.minDeposit))
+                    .replace("{max}", numberFormat.format(config.interest.maxDeposit)));
             return;
         }
 
@@ -58,9 +58,10 @@ public class InterestService {
         }
 
         List<InterestAccount> currentAccounts = storageService.getInterestAccounts(player.getUniqueId());
-        if (currentAccounts.size() >= configManager.getMaxInterestAccounts()) {
+
+        if (currentAccounts.size() >= config.interest.maxAccounts) {
             player.sendMessage(messageManager.getMessage("interest.error-max-accounts")
-                    .replace("{max}", String.valueOf(configManager.getMaxInterestAccounts())));
+                    .replace("{max}", String.valueOf(config.interest.maxAccounts)));
             return;
         }
 
@@ -71,10 +72,15 @@ public class InterestService {
         }
 
         double applicableRate = -1;
-        for (Map<?, ?> rateMap : configManager.getInterestRates()) {
+
+        for (Map<String, Object> rateMap : config.interest.rates) {
             long rateTimeMillis = TimeUtil.parseTime(String.valueOf(rateMap.get("time")));
+
             if (durationMillis >= rateTimeMillis) {
-                applicableRate = (Double) rateMap.get("rate");
+                Object rateObj = rateMap.get("rate");
+                if (rateObj instanceof Number) {
+                    applicableRate = ((Number) rateObj).doubleValue();
+                }
                 break;
             }
         }

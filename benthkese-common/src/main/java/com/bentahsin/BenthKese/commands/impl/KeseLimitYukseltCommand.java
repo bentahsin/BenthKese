@@ -7,6 +7,7 @@ import com.bentahsin.BenthKese.data.LimitLevel;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
+import com.bentahsin.BenthKese.eventbridge.BenthBus;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import net.milkbowl.vault.economy.Economy;
@@ -21,13 +22,15 @@ import java.util.Locale;
 
 public class KeseLimitYukseltCommand implements ISubCommand {
 
+    private final BenthKeseCore core;
     private final MessageManager messageManager;
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final Economy economy = BenthKeseCore.getEconomy();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    public KeseLimitYukseltCommand(MessageManager messageManager, IStorageService storageService, LimitManager limitManager) {
+    public KeseLimitYukseltCommand(BenthKeseCore core, MessageManager messageManager, IStorageService storageService, LimitManager limitManager) {
+        this.core = core;
         this.messageManager = messageManager;
         this.storageService = storageService;
         this.limitManager = limitManager;
@@ -70,15 +73,24 @@ public class KeseLimitYukseltCommand implements ISubCommand {
         EconomyResponse response = economy.withdrawPlayer(player, cost);
         if (response.transactionSuccess()) {
             playerData.setLimitLevel(nextLevel.getLevel());
-
             playerData.incrementTotalTransactions();
+
             storageService.savePlayerData(playerData);
 
-            storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.LEVEL_UP, cost, nextLevel.getName(), System.currentTimeMillis()));
+            TransactionData transaction = new TransactionData(
+                    player.getUniqueId(),
+                    TransactionType.LEVEL_UP,
+                    cost,
+                    nextLevel.getName(),
+                    System.currentTimeMillis()
+            );
+
+            BenthBus.publish(core.getPlugin(), "transaction-log", transaction);
 
             String message = messageManager.getMessage("level-up.success")
                     .replace("{yeni_seviye}", nextLevel.getName());
             player.sendMessage(message);
+
         } else {
             String message = messageManager.getMessage("level-up.error")
                     .replace("{hata}", response.errorMessage);

@@ -2,12 +2,13 @@ package com.bentahsin.BenthKese.commands.impl;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.ISubCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.LimitLevel;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
+import com.bentahsin.BenthKese.eventbridge.BenthBus;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import com.bentahsin.BenthKese.utils.ActionBarUtil;
@@ -25,19 +26,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class KeseGonderCommand implements ISubCommand {
+
+    private final BenthKeseCore core;
     private final MessageManager messageManager;
     private final IStorageService storageService;
     private final LimitManager limitManager;
-    private final ConfigurationManager configmanager;
+    private final BenthConfig config;
     private final Economy economy = BenthKeseCore.getEconomy();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-
-    public KeseGonderCommand(MessageManager messageManager, IStorageService storageService, LimitManager limitManager, ConfigurationManager configManager) {
+    public KeseGonderCommand(BenthKeseCore core, MessageManager messageManager, IStorageService storageService, LimitManager limitManager, BenthConfig config) {
+        this.core = core;
         this.messageManager = messageManager;
         this.storageService = storageService;
         this.limitManager = limitManager;
-        this.configmanager = configManager;
+        this.config = config;
     }
 
     @Override
@@ -84,8 +87,8 @@ public class KeseGonderCommand implements ISubCommand {
 
         double totalCost = amount;
         double taxAmount = 0;
-        if (configmanager.isSendTaxEnabled()) {
-            taxAmount = amount * configmanager.getSendTaxRate();
+        if (config.taxes.send.enabled) {
+            taxAmount = amount * config.taxes.send.rate;
             totalCost = amount + taxAmount;
         }
 
@@ -130,8 +133,11 @@ public class KeseGonderCommand implements ISubCommand {
             storageService.savePlayerData(targetData);
 
             long timestamp = System.currentTimeMillis();
-            storageService.logTransaction(new TransactionData(senderPlayer.getUniqueId(), TransactionType.SEND, amount, targetPlayer.getName(), timestamp));
-            storageService.logTransaction(new TransactionData(targetPlayer.getUniqueId(), TransactionType.RECEIVE, amount, senderPlayer.getName(), timestamp));
+            TransactionData senderLog = new TransactionData(senderPlayer.getUniqueId(), TransactionType.SEND, amount, targetPlayer.getName(), timestamp);
+            BenthBus.publish(core.getPlugin(), "transaction-log", senderLog);
+
+            TransactionData receiverLog = new TransactionData(targetPlayer.getUniqueId(), TransactionType.RECEIVE, amount, senderPlayer.getName(), timestamp);
+            BenthBus.publish(core.getPlugin(), "transaction-log", receiverLog);
 
             senderPlayer.sendMessage(messageManager.getMessage("send-money.success-sender")
                     .replace("{oyuncu}", targetPlayer.getName())

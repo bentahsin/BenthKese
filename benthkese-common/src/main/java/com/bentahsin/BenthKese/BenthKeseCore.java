@@ -5,12 +5,13 @@ import com.bentahsin.BenthKese.commands.CommandManager;
 import com.bentahsin.BenthKese.commands.admin.AdminCommandManager;
 import com.bentahsin.BenthKese.commands.admin.impl.*;
 import com.bentahsin.BenthKese.commands.impl.*;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
-import com.bentahsin.BenthKese.configuration.MenuManager;
-import com.bentahsin.BenthKese.configuration.MessageManager;
+import com.bentahsin.BenthKese.configuration.*;
+import com.bentahsin.BenthKese.eventbridge.BenthRegistry;
+import com.bentahsin.BenthKese.eventbridge.Subscribe;
 import com.bentahsin.BenthKese.expansion.BenthKeseExpansion;
 import com.bentahsin.BenthKese.gui.listener.MenuListener;
 import com.bentahsin.BenthKese.listeners.PlayerConnectionListener;
+import com.bentahsin.BenthKese.listeners.TransactionBridgeListener;
 import com.bentahsin.BenthKese.services.BalanceSyncTask;
 import com.bentahsin.BenthKese.services.EconomyService;
 import com.bentahsin.BenthKese.services.InterestService;
@@ -21,10 +22,10 @@ import com.bentahsin.BenthKese.services.storage.database.DatabaseManager;
 import com.bentahsin.BenthKese.services.storage.database.MySQLStorageService;
 import com.bentahsin.BenthKese.services.storage.database.SQLiteStorageService;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
+import com.bentahsin.configuration.Configuration;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.server.ServiceRegisterEvent;
@@ -43,9 +44,12 @@ public class BenthKeseCore {
     private final IScheduler scheduler;
 
     private static Economy econ = null;
+    private BenthRegistry eventRegistry;
     private MessageManager messageManager;
-    private ConfigurationManager configurationManager;
     private EconomyService economyService;
+    private Configuration configLoader;
+    private BenthConfig mainConfig;
+    private LimitsConfig limitsConfig;
     private LimitManager limitManager;
     private IStorageService storageService;
     private InterestService interestService;
@@ -67,21 +71,27 @@ public class BenthKeseCore {
         }
 
         plugin.saveDefaultConfig();
-        this.configurationManager = new ConfigurationManager(plugin);
-        this.menuManager = new MenuManager(plugin);
+        this.eventRegistry = new BenthRegistry(plugin);
+        this.configLoader = new Configuration(plugin);
+        this.mainConfig = new BenthConfig();
+        this.configLoader.init(mainConfig, "config.yml");
+        this.limitsConfig = new LimitsConfig();
+        this.configLoader.init(limitsConfig, "limits.yml");
+        this.limitManager = new LimitManager(this.limitsConfig);
+
         this.messageManager = new MessageManager(plugin);
-        this.limitManager = new LimitManager(plugin);
+        this.menuManager = new MenuManager(plugin);
 
         setupStorage();
 
-        this.economyService = new EconomyService(configurationManager);
-        this.interestService = new InterestService(storageService, configurationManager, messageManager);
+        this.economyService = new EconomyService(mainConfig);
+        this.interestService = new InterestService(storageService, mainConfig, messageManager);
 
         registerCommands();
         registerListeners();
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new BenthKeseExpansion(plugin, storageService, limitManager, messageManager, configurationManager).register();
+            new BenthKeseExpansion(plugin, storageService, limitManager, messageManager, mainConfig).register();
             plugin.getLogger().info("PlaceHolderAPI bulundu ve placeholder'lar başarıyla kaydedildi.");
         }
 
@@ -113,11 +123,11 @@ public class BenthKeseCore {
     }
 
     public void reloadPlugin() {
-        this.configurationManager.loadConfig();
+        this.configLoader.reload(mainConfig, "config.yml");
+        this.configLoader.reload(limitsConfig, "limits.yml");
         this.messageManager.loadMessages();
-        this.limitManager.loadLimits();
         this.menuManager.loadMenus();
-        plugin.getLogger().info("Konfigürasyon dosyaları yeniden yüklendi.");
+        plugin.getLogger().info("Konfigürasyonlar (Annotasyon sistemi ile) yeniden yüklendi.");
     }
 
     private boolean setupEconomy() {
@@ -162,23 +172,23 @@ public class BenthKeseCore {
     }
 
     private void registerCommands() {
-        CommandManager commandManager = new CommandManager(messageManager, this, economyService, configurationManager, storageService, limitManager, interestService, menuManager);
+        CommandManager commandManager = new CommandManager(messageManager, this, economyService, mainConfig, storageService, limitManager, interestService, menuManager);
 
         commandManager.registerCommand(new KeseHelpCommand(messageManager));
         commandManager.registerCommand(new KeseBakiyeCommand(messageManager));
-        commandManager.registerCommand(new KeseKoyCommand(messageManager, economyService, configurationManager, storageService));
-        commandManager.registerCommand(new KeseAlCommand(messageManager, economyService, configurationManager, storageService));
-        commandManager.registerCommand(new KeseGonderCommand(messageManager, storageService, limitManager, configurationManager));
+        commandManager.registerCommand(new KeseKoyCommand(this, messageManager, economyService, mainConfig, storageService));
+        commandManager.registerCommand(new KeseAlCommand(this, messageManager, economyService, mainConfig, storageService));
+        commandManager.registerCommand(new KeseGonderCommand(this, messageManager, storageService, limitManager, mainConfig));
 
         KeseFaizCommand faizCommand = new KeseFaizCommand(messageManager);
         faizCommand.registerSubCommand(new KeseFaizHelpCommand(messageManager));
-        faizCommand.registerSubCommand(new KeseFaizListeCommand(this, messageManager, storageService, economyService, configurationManager, limitManager, interestService, menuManager));
+        faizCommand.registerSubCommand(new KeseFaizListeCommand(this, messageManager, storageService, economyService, mainConfig, limitManager, interestService, menuManager));
         faizCommand.registerSubCommand(new KeseFaizKoyCommand(messageManager, interestService));
         commandManager.registerCommand(faizCommand);
 
         KeseLimitCommand limitCommand = new KeseLimitCommand(messageManager, limitManager);
         limitCommand.registerSubCommand(new KeseLimitGorCommand(messageManager, storageService, limitManager));
-        limitCommand.registerSubCommand(new KeseLimitYukseltCommand(messageManager, storageService, limitManager));
+        limitCommand.registerSubCommand(new KeseLimitYukseltCommand(this, messageManager, storageService, limitManager));
         commandManager.registerCommand(limitCommand);
 
         Objects.requireNonNull(plugin.getCommand("kese")).setExecutor(commandManager);
@@ -198,11 +208,13 @@ public class BenthKeseCore {
     }
 
     private void registerListeners() {
-        plugin.getServer().getPluginManager().registerEvents(new PlayerConnectionListener(storageService), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new MenuListener(), plugin);
+        this.eventRegistry = new BenthRegistry(plugin);
+        eventRegistry.register(new TransactionBridgeListener(storageService));
+        eventRegistry.register(new PlayerConnectionListener(storageService));
+        eventRegistry.register(new MenuListener());
+        eventRegistry.register(new Listener() {
 
-        plugin.getServer().getPluginManager().registerEvents(new Listener() {
-            @EventHandler
+            @Subscribe
             public void onServiceRegister(ServiceRegisterEvent event) {
                 if (event.getProvider().getService() == Economy.class && econ == null) {
                     if (setupEconomy()) {
@@ -211,13 +223,13 @@ public class BenthKeseCore {
                 }
             }
 
-            @EventHandler
+            @Subscribe
             public void onMenuClose(InventoryCloseEvent event) {
                 if (event.getInventory().getHolder() instanceof com.bentahsin.BenthKese.gui.Menu) {
                     ((com.bentahsin.BenthKese.gui.Menu) event.getInventory().getHolder()).stopUpdateTask();
                 }
             }
-        }, plugin);
+        });
     }
 
     public PlayerMenuUtility getPlayerMenuUtility(Player p) {
@@ -234,4 +246,6 @@ public class BenthKeseCore {
     public JavaPlugin getPlugin() { return plugin; }
     public IScheduler getScheduler() { return scheduler; }
     public MenuManager getMenuManager() { return menuManager; }
+    public BenthConfig getConfig() { return mainConfig; }
+    public LimitsConfig getLimits() { return limitsConfig; }
 }

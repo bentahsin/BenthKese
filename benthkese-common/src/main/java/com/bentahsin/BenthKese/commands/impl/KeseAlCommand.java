@@ -2,11 +2,12 @@ package com.bentahsin.BenthKese.commands.impl;
 
 import com.bentahsin.BenthKese.BenthKeseCore;
 import com.bentahsin.BenthKese.commands.ISubCommand;
-import com.bentahsin.BenthKese.configuration.ConfigurationManager;
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
+import com.bentahsin.BenthKese.eventbridge.BenthBus;
 import com.bentahsin.BenthKese.services.EconomyService;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import org.bukkit.command.CommandSender;
@@ -19,16 +20,18 @@ import java.util.Locale;
 
 public class KeseAlCommand implements ISubCommand {
 
+    private final BenthKeseCore core;
     private final MessageManager messageManager;
     private final EconomyService economyService;
-    private final ConfigurationManager configManager;
+    private final BenthConfig config;
     private final IStorageService storageService;
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
 
-    public KeseAlCommand(MessageManager messageManager, EconomyService economyService, ConfigurationManager configManager, IStorageService storageService) {
+    public KeseAlCommand(BenthKeseCore core, MessageManager messageManager, EconomyService economyService, BenthConfig config, IStorageService storageService) {
+        this.core = core;
         this.messageManager = messageManager;
         this.economyService = economyService;
-        this.configManager = configManager;
+        this.config = config;
         this.storageService = storageService;
     }
 
@@ -63,11 +66,10 @@ public class KeseAlCommand implements ISubCommand {
             }
         }
 
-        double taxRate = configManager.isWithdrawTaxEnabled() ? configManager.getWithdrawTaxRate() : 0.0;
-
+        double taxRate = config.taxes.withdraw.enabled ? config.taxes.withdraw.rate : 0.0;
         double estimatedTotalCost = requestedAmount * (1 + taxRate);
 
-        if (BenthKeseCore.getEconomy().has(player, estimatedTotalCost)) {
+        if (!BenthKeseCore.getEconomy().has(player, estimatedTotalCost)) {
             String message = messageManager.getMessage("withdraw.not-enough-money")
                     .replace("{istenen}", numberFormat.format(requestedAmount))
                     .replace("{gereken}", numberFormat.format(estimatedTotalCost));
@@ -76,7 +78,7 @@ public class KeseAlCommand implements ISubCommand {
         }
 
         int withdrawnAmount = economyService.withdraw(player, requestedAmount);
-        String itemBirim = configManager.getEconomyItemMaterial().name().toLowerCase().replace("_", " ");
+        String itemBirim = config.economyItem.name().toLowerCase().replace("_", " ");
 
         if (withdrawnAmount == -1) {
             messageManager.sendMessage(player, "not-enough-money");
@@ -93,7 +95,15 @@ public class KeseAlCommand implements ISubCommand {
             }
             storageService.savePlayerData(playerData);
 
-            storageService.logTransaction(new TransactionData(player.getUniqueId(), TransactionType.WITHDRAW, withdrawnAmount, itemBirim, System.currentTimeMillis()));
+            TransactionData transaction = new TransactionData(
+                    player.getUniqueId(),
+                    TransactionType.WITHDRAW,
+                    withdrawnAmount,
+                    itemBirim,
+                    System.currentTimeMillis()
+            );
+
+            BenthBus.publish(core.getPlugin(), "transaction-log", transaction);
 
             if (withdrawnAmount < requestedAmount) {
                 player.sendMessage(messageManager.getMessage("withdraw.partial-success")
