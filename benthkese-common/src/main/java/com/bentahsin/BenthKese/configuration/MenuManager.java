@@ -24,9 +24,15 @@ public class MenuManager {
 
     private final JavaPlugin plugin;
     private YamlDocument menuConfig;
+    private final MessageManager messageManager;
 
     public MenuManager(JavaPlugin plugin) {
+        this(plugin, null);
+    }
+
+    public MenuManager(JavaPlugin plugin, MessageManager messageManager) {
         this.plugin = plugin;
+        this.messageManager = messageManager;
         loadMenus();
     }
 
@@ -89,5 +95,19 @@ public class MenuManager {
 
     public Section getMenuSection(String menuKey) {
         return menuConfig.getSection(menuKey);
+    }
+
+    /**
+     * GUI ile ilgili (messages.yml içinde gui.*) metinleri MessageManager üzerinden alır.
+     * Örnek: getGuiMessage("anvil.default-amount-text") -> messages.yml'deki gui.anvil.default-amount-text
+     */
+    @SuppressWarnings("unused")
+    public String getGuiMessage(String key) {
+        if (messageManager == null) {
+            plugin.getLogger().warning("MenuManager.getGuiMessage çağrıldı ancak MessageManager kayıtlı değil. Key: " + key);
+            String alt = menuConfig.getString(key, "&cMesaj bulunamadı: " + key);
+            return ChatColor.translateAlternateColorCodes('&', alt);
+        }
+        return messageManager.getMessage("gui." + key);
     }
 }

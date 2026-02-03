@@ -109,7 +109,7 @@ public class KeseYatirGUI extends Menu {
                 core.getPlugin(),
                 playerMenuUtility.getOwner(),
                 messageManager,
-                messageManager.getMessage("gui.deposit-menu.anvil-title"),
+                menuManager.getMenuTitle("deposit-menu"),
                 new ItemStack(menuManager.getMenuItem(MENU_KEY, "anvil-input").material()),
                 (amount) -> {
                     koyCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{String.valueOf(amount.intValue())});

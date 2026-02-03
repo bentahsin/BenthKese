@@ -3,6 +3,18 @@
 # Değişkenler için {degisken_adi} formatını kullanabilirsiniz.
 
 # ====================================================================
+# 0. GUI Mesajları
+# Grafiksel kullanıcı arayüzü (Anvil gibi) tarafından kullanılan kısa metinler.
+# ====================================================================
+gui:
+  anvil:
+    default-amount-text: "&eMiktar girin..."
+    default-player-text: "&eOyuncu adı girin..."
+    not-a-number: "&cGeçersiz sayı!"
+    player-not-found: "&cOyuncu bulunamadı!"
+    cant-send-self: "&cKendine para gönderemezsin."
+
+# ====================================================================
 # 1. Genel Mesajlar
 # Eklentinin genelinde kullanılan temel geri bildirimler.
 # ====================================================================

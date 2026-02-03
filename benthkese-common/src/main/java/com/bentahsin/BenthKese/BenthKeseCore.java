@@ -80,7 +80,7 @@ public class BenthKeseCore {
         this.limitManager = new LimitManager(this.limitsConfig);
 
         this.messageManager = new MessageManager(plugin);
-        this.menuManager = new MenuManager(plugin);
+        this.menuManager = new MenuManager(plugin, messageManager);
 
         setupStorage();
 

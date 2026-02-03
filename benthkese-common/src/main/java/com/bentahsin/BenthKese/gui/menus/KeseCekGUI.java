@@ -97,7 +97,7 @@ public class KeseCekGUI extends Menu {
                 core.getPlugin(),
                 playerMenuUtility.getOwner(),
                 messageManager,
-                messageManager.getMessage("gui.withdraw-menu.anvil-title"),
+                menuManager.getMenuTitle("withdraw-menu"),
                 new ItemStack(menuManager.getMenuItem(MENU_KEY, "anvil-input").material()),
                 (amount) -> {
                     alCommandLogic.execute(playerMenuUtility.getOwner(), new String[]{String.valueOf(amount.intValue())});

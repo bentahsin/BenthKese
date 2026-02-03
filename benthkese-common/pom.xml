@@ -5,13 +5,12 @@
     <parent>
         <groupId>com.bentahsin</groupId>
         <artifactId>BenthKese-Parent</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </parent>
 
     <artifactId>benthkese-common</artifactId>
 
     <dependencies>
-        <!-- Spigot API (Base olarak kullanacağız, Folia API de bunu kapsar) -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
