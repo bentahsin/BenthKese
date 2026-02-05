@@ -31,7 +31,7 @@ public class EconomyService {
      * @return İşlem sonrası oyuncunun kesesine geçen net miktar. Yetersiz eşya varsa -1 döner.
      */
     public double deposit(Player player, int amount) {
-        Material itemType = config.economyItem;
+        Material itemType = config.getEconomyMaterial();
 
         if (!player.getInventory().containsAtLeast(new ItemStack(itemType), amount)) {
             return -1;
@@ -55,7 +55,7 @@ public class EconomyService {
      * @return Envanterden yatırılan toplam eşya miktarı. Hiç eşya yoksa 0 döner.
      */
     public int depositInventory(Player player) {
-        Material itemType = config.economyItem;
+        Material itemType = config.getEconomyMaterial();
         int totalAmount = 0;
         for (ItemStack item : player.getInventory().getContents()) {
             if (item != null && item.getType() == itemType) {
@@ -87,7 +87,7 @@ public class EconomyService {
             return -1;
         }
 
-        int freeSpace = getFreeSpaceFor(player.getInventory(), config.economyItem);
+        int freeSpace = getFreeSpaceFor(player.getInventory(), config.getEconomyMaterial());
         if (freeSpace == 0) {
             return 0;
         }
@@ -103,7 +103,7 @@ public class EconomyService {
         }
 
         economy.withdrawPlayer(player, totalCost);
-        player.getInventory().addItem(new ItemStack(config.economyItem, amountToGive));
+        player.getInventory().addItem(new ItemStack(config.getEconomyMaterial(), amountToGive));
 
         return amountToGive;
     }

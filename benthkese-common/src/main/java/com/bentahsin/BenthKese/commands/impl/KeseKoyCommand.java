@@ -64,7 +64,7 @@ public class KeseKoyCommand implements ISubCommand {
             return;
         }
 
-        String itemBirim = config.economyItem.name().toLowerCase().replace("_", " ");
+        String itemBirim = config.getEconomyMaterial().name().toLowerCase().replace("_", " ");
 
         if (args.length == 0) {
             handleDepositAmount(player, 1, itemBirim);
@@ -130,7 +130,7 @@ public class KeseKoyCommand implements ISubCommand {
 
     private void handleDepositHand(Player player, String itemBirim) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        Material economyItem = config.economyItem;
+        Material economyItem = config.getEconomyMaterial();
 
         if (itemInHand.getType() != economyItem) {
             messageManager.sendMessage(player, "deposit.not-holding-economy-item");

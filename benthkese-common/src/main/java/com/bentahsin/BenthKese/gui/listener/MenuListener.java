@@ -8,13 +8,13 @@
 package com.bentahsin.BenthKese.gui.listener;
 
 import com.bentahsin.BenthKese.gui.Menu;
-import org.bukkit.event.EventHandler;
+import com.bentahsin.BenthKese.eventbridge.Subscribe;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 public class MenuListener implements Listener {
 
-    @EventHandler
+    @Subscribe
     public void onMenuClick(InventoryClickEvent e) {
         if (e.getInventory().getHolder() instanceof Menu) {
             e.setCancelled(true);

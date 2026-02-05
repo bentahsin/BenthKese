@@ -12,6 +12,8 @@ import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -89,7 +91,7 @@ public class KeseLimitYukseltCommand implements ISubCommand {
 
             String message = messageManager.getMessage("level-up.success")
                     .replace("{yeni_seviye}", nextLevel.getName());
-            player.sendMessage(message);
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 
         } else {
             String message = messageManager.getMessage("level-up.error")

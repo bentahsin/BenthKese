@@ -51,6 +51,7 @@ public class BenthRegistry {
             Class<? extends Event> eventType = paramType.asSubclass(Event.class);
 
             try {
+                method.setAccessible(true);
                 MethodHandle handle = lookup.unreflect(method);
                 MethodHandle boundHandle = handle.bindTo(listener);
 

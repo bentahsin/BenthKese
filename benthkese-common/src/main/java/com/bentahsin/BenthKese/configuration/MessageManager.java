@@ -51,7 +51,7 @@ public class MessageManager {
             );
 
             if (messagesConfig.reload()) {
-                plugin.getLogger().info("messages.yml dosyası güncellendi. (Yeni ayarlar eklendi)");
+                plugin.getLogger().info("messages.yml dosyası güncellendi.");
             }
 
         } catch (IOException | NullPointerException e) {

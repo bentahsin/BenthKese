@@ -78,7 +78,7 @@ public class KeseAlCommand implements ISubCommand {
         }
 
         int withdrawnAmount = economyService.withdraw(player, requestedAmount);
-        String itemBirim = config.economyItem.name().toLowerCase().replace("_", " ");
+        String itemBirim = config.getEconomyMaterial().name().toLowerCase().replace("_", " ");
 
         if (withdrawnAmount == -1) {
             messageManager.sendMessage(player, "not-enough-money");

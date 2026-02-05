@@ -19,15 +19,27 @@ public class BenthConfig {
     @ConfigPath("storage.mysql")
     public MySQLSettings mysql = new MySQLSettings();
 
-    @Comment("Ekonomi için kullanılacak materyal.")
+    @Comment({"Ekonomi için kullanılacak materyal.", "Örnek: GOLD_INGOT, DIAMOND, EMERALD"})
     @ConfigPath("economy-item")
-    public Material economyItem = Material.GOLD_INGOT;
+    public String economyItem = "GOLD_INGOT";
 
     @ConfigPath("taxes")
     public Taxes taxes = new Taxes();
 
     @ConfigPath("interest")
     public Interest interest = new Interest();
+
+    /**
+     * economy-item değerini Material olarak döndürür.
+     * Geçersiz bir değer varsa GOLD_INGOT kullanılır.
+     */
+    public Material getEconomyMaterial() {
+        try {
+            return Material.valueOf(economyItem.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Material.GOLD_INGOT;
+        }
+    }
 
     public static class MySQLSettings {
         public String host = "localhost";

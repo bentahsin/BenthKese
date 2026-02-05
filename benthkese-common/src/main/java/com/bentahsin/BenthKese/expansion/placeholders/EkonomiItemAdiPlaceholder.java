@@ -21,7 +21,7 @@ public class EkonomiItemAdiPlaceholder implements IPlaceholder {
 
     @Override
     public String getValue(OfflinePlayer player) {
-        String itemName = config.economyItem.name().replace('_', ' ');
+        String itemName = config.getEconomyMaterial().name().replace('_', ' ');
         return WordUtils.capitalizeFully(itemName);
     }
 }
