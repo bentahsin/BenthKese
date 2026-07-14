@@ -8,7 +8,7 @@ import com.bentahsin.BenthKese.data.LimitLevel;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
-import com.bentahsin.BenthKese.eventbridge.BenthBus;
+import com.bentahsin.BenthKese.events.TransactionLogEvent;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import com.bentahsin.BenthKese.utils.ActionBarUtil;
@@ -134,10 +134,10 @@ public class KeseGonderCommand implements ISubCommand {
 
             long timestamp = System.currentTimeMillis();
             TransactionData senderLog = new TransactionData(senderPlayer.getUniqueId(), TransactionType.SEND, amount, targetPlayer.getName(), timestamp);
-            BenthBus.publish(core.getPlugin(), "transaction-log", senderLog);
+            Bukkit.getPluginManager().callEvent(new TransactionLogEvent(senderLog));
 
             TransactionData receiverLog = new TransactionData(targetPlayer.getUniqueId(), TransactionType.RECEIVE, amount, senderPlayer.getName(), timestamp);
-            BenthBus.publish(core.getPlugin(), "transaction-log", receiverLog);
+            Bukkit.getPluginManager().callEvent(new TransactionLogEvent(receiverLog));
 
             senderPlayer.sendMessage(messageManager.getMessage("send-money.success-sender")
                     .replace("{oyuncu}", targetPlayer.getName())

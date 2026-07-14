@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class BenthKeseExpansion extends PlaceholderExpansion {
@@ -36,7 +37,6 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
     private final IStorageService storageService;
     private final LimitManager limitManager;
     private final MessageManager messageManager;
-    private final BenthConfig config;
     private final Economy economy = BenthKeseCore.getEconomy();
     private final Map<String, IPlaceholder> placeholders = new HashMap<>();
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(new Locale("tr", "TR"));
@@ -46,7 +46,6 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
         this.storageService = storageService;
         this.limitManager = limitManager;
         this.messageManager = messageManager;
-        this.config = config;
         registerPlaceholders(storageService, limitManager, messageManager, config);
     }
 
@@ -83,10 +82,10 @@ public class BenthKeseExpansion extends PlaceholderExpansion {
         if (!(storageService instanceof YamlStorageService)) {
             addPlaceholder(new PlayerRankPlaceholder(storageService));
             for (int i = 1; i <= 10; i++) {
-                addPlaceholder(new TopListPlaceholder("top_bakiye_isim_" + i, i, true, storageService::getTopPlayersByBalance));
-                addPlaceholder(new TopListPlaceholder("top_bakiye_deger_" + i, i, false, storageService::getTopPlayersByBalance));
-                addPlaceholder(new TopListPlaceholder("top_seviye_isim_" + i, i, true, storageService::getTopPlayersByLimitLevel));
-                addPlaceholder(new TopListPlaceholder("top_seviye_deger_" + i, i, false, storageService::getTopPlayersByLimitLevel));
+                addPlaceholder(new TopListPlaceholder("top_bakiye_isim_" + i, i, true, limit -> storageService.getTopPlayersByBalance(Objects.requireNonNull(limit))));
+                addPlaceholder(new TopListPlaceholder("top_bakiye_deger_" + i, i, false, limit -> storageService.getTopPlayersByBalance(Objects.requireNonNull(limit))));
+                addPlaceholder(new TopListPlaceholder("top_seviye_isim_" + i, i, true, limit -> storageService.getTopPlayersByLimitLevel(Objects.requireNonNull(limit))));
+                addPlaceholder(new TopListPlaceholder("top_seviye_deger_" + i, i, false, limit -> storageService.getTopPlayersByLimitLevel(Objects.requireNonNull(limit))));
             }
         }
 

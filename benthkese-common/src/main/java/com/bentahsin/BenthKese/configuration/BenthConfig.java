@@ -1,33 +1,60 @@
 package com.bentahsin.BenthKese.configuration;
 
-import com.bentahsin.configuration.annotation.*;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import org.bukkit.Material;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@ConfigHeader({"BenthKese Ana Ayarlar", "Sürüm 1.0"})
-@ConfigVersion(1)
-@Backup(enabled = true, onFailure = true, onMigration = true)
-public class BenthConfig {
+public class BenthConfig extends AbstractYamlConfig {
 
-    @Comment("Veri Depolama Ayarları (YAML, SQLITE, MYSQL)")
-    @ConfigPath("storage.type")
     public String storageType = "SQLITE";
-
-    @ConfigPath("storage.mysql")
     public MySQLSettings mysql = new MySQLSettings();
-
-    @Comment({"Ekonomi için kullanılacak materyal.", "Örnek: GOLD_INGOT, DIAMOND, EMERALD"})
-    @ConfigPath("economy-item")
     public String economyItem = "GOLD_INGOT";
-
-    @ConfigPath("taxes")
     public Taxes taxes = new Taxes();
-
-    @ConfigPath("interest")
     public Interest interest = new Interest();
+
+    public BenthConfig(JavaPlugin plugin) {
+        super(plugin, "config.yml");
+    }
+
+    @Override
+    protected void onLoad(YamlDocument document) {
+        storageType = document.getString("storage.type", storageType);
+
+        mysql.host = document.getString("storage.mysql.host", mysql.host);
+        mysql.port = document.getInt("storage.mysql.port", mysql.port);
+        mysql.database = document.getString("storage.mysql.database", mysql.database);
+        mysql.username = document.getString("storage.mysql.username", mysql.username);
+        mysql.password = document.getString("storage.mysql.password", mysql.password);
+
+        economyItem = document.getString("economy-item", economyItem);
+
+        taxes.deposit.enabled = document.getBoolean("taxes.deposit.enabled", taxes.deposit.enabled);
+        taxes.deposit.rate = document.getDouble("taxes.deposit.rate", taxes.deposit.rate);
+        taxes.withdraw.enabled = document.getBoolean("taxes.withdraw.enabled", taxes.withdraw.enabled);
+        taxes.withdraw.rate = document.getDouble("taxes.withdraw.rate", taxes.withdraw.rate);
+        taxes.send.enabled = document.getBoolean("taxes.send.enabled", taxes.send.enabled);
+        taxes.send.rate = document.getDouble("taxes.send.rate", taxes.send.rate);
+
+        interest.enabled = document.getBoolean("interest.enabled", interest.enabled);
+        interest.maxAccounts = document.getInt("interest.max-accounts-per-player", interest.maxAccounts);
+        interest.minDeposit = document.getDouble("interest.min-deposit", interest.minDeposit);
+        interest.maxDeposit = document.getDouble("interest.max-deposit", interest.maxDeposit);
+
+        List<Map<String, Object>> parsedRates = new ArrayList<>();
+        for (Map<?, ?> rawRate : document.getMapList("interest.rates")) {
+            Map<String, Object> rate = new LinkedHashMap<>();
+            rawRate.forEach((key, value) -> rate.put(String.valueOf(key), value));
+            parsedRates.add(rate);
+        }
+        if (!parsedRates.isEmpty()) {
+            interest.rates = parsedRates;
+        }
+    }
 
     /**
      * economy-item değerini Material olarak döndürür.
@@ -67,20 +94,11 @@ public class BenthConfig {
     }
 
     public static class Interest {
-        @Comment("Faiz sistemi aktif mi?")
         public boolean enabled = true;
-
-        @ConfigPath("max-accounts-per-player")
         public int maxAccounts = 5;
-
-        @ConfigPath("min-deposit")
         public double minDeposit = 1000.0;
-
-        @ConfigPath("max-deposit")
         public double maxDeposit = 1000000.0;
-
-        @Comment({"Faiz oranları listesi.", "Format: {time: '7d', rate: 0.10}"})
-        public List<Map<String, Object>> rates = Arrays.asList(
+        public List<Map<String, Object>> rates = List.of(
                 createRate("1d", 0.05),
                 createRate("7d", 0.12),
                 createRate("30d", 0.35)

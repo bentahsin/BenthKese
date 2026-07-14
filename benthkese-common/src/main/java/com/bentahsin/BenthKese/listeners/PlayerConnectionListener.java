@@ -1,7 +1,7 @@
 package com.bentahsin.BenthKese.listeners;
 
-import com.bentahsin.BenthKese.eventbridge.Subscribe;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -14,13 +14,13 @@ public class PlayerConnectionListener implements Listener {
         this.storageService = storageService;
     }
 
-    @Subscribe
+    @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         storageService.loadPlayer(event.getPlayer().getUniqueId());
         storageService.updatePlayerName(event.getPlayer().getUniqueId(), event.getPlayer().getName());
     }
 
-    @Subscribe
+    @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         storageService.unloadPlayer(event.getPlayer().getUniqueId());
     }

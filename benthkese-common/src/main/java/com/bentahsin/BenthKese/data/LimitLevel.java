@@ -1,17 +1,13 @@
 package com.bentahsin.BenthKese.data;
 
-import com.bentahsin.configuration.annotation.ConfigPath;
-
 public class LimitLevel {
-    public transient int level;
+    public int level;
 
     public String name = "&7Başlangıç";
     public double cost = 1000.0;
 
-    @ConfigPath("send-limit")
     public double sendLimit = 5000.0;
 
-    @ConfigPath("receive-limit")
     public double receiveLimit = 10000.0;
 
     public LimitLevel() {}

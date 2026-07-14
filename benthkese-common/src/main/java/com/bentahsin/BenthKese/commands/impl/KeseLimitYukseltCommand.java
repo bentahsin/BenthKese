@@ -7,13 +7,12 @@ import com.bentahsin.BenthKese.data.LimitLevel;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
-import com.bentahsin.BenthKese.eventbridge.BenthBus;
+import com.bentahsin.BenthKese.events.TransactionLogEvent;
 import com.bentahsin.BenthKese.services.LimitManager;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -87,7 +86,7 @@ public class KeseLimitYukseltCommand implements ISubCommand {
                     System.currentTimeMillis()
             );
 
-            BenthBus.publish(core.getPlugin(), "transaction-log", transaction);
+            org.bukkit.Bukkit.getPluginManager().callEvent(new TransactionLogEvent(transaction));
 
             String message = messageManager.getMessage("level-up.success")
                     .replace("{yeni_seviye}", nextLevel.getName());

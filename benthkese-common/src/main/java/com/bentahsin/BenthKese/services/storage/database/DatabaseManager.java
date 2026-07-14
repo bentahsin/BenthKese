@@ -7,9 +7,9 @@
  */
 package com.bentahsin.BenthKese.services.storage.database;
 
+import com.bentahsin.BenthKese.configuration.BenthConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -17,26 +17,23 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Objects;
 
 public class DatabaseManager {
 
     private final JavaPlugin plugin;
+    private final BenthConfig config;
     private HikariDataSource hikari;
 
-    public DatabaseManager(JavaPlugin plugin) {
+    public DatabaseManager(JavaPlugin plugin, BenthConfig config) {
         this.plugin = plugin;
+        this.config = config;
     }
 
     public void connect() throws SQLException {
-        String storageType = Objects.requireNonNull(plugin.getConfig().getString("storage.type", "SQLITE")).toUpperCase();
+        String storageType = config.storageType.toUpperCase();
 
         if (storageType.equals("MYSQL")) {
-            ConfigurationSection mysqlConfig = plugin.getConfig().getConfigurationSection("storage.mysql");
-            if (mysqlConfig == null) {
-                throw new SQLException("MySQL konfigürasyonu config.yml dosyasında bulunamadı.");
-            }
-            setupHikariMySql(mysqlConfig);
+            setupHikariMySql(config.mysql);
             plugin.getLogger().info("MySQL veritabanına başarıyla bağlanıldı.");
         } else {
             setupHikariSqlite();
@@ -46,11 +43,11 @@ public class DatabaseManager {
         setupTables();
     }
 
-    private void setupHikariMySql(ConfigurationSection config) {
+    private void setupHikariMySql(BenthConfig.MySQLSettings mysql) {
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl("jdbc:mysql://" + config.getString("host") + ":" + config.getInt("port") + "/" + config.getString("database") + "?useSSL=false");
-        hikariConfig.setUsername(config.getString("username"));
-        hikariConfig.setPassword(config.getString("password"));
+        hikariConfig.setJdbcUrl("jdbc:mysql://" + mysql.host + ":" + mysql.port + "/" + mysql.database + "?useSSL=false");
+        hikariConfig.setUsername(mysql.username);
+        hikariConfig.setPassword(mysql.password);
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");

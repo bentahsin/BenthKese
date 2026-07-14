@@ -6,8 +6,6 @@ import com.bentahsin.BenthKese.commands.admin.AdminCommandManager;
 import com.bentahsin.BenthKese.commands.admin.impl.*;
 import com.bentahsin.BenthKese.commands.impl.*;
 import com.bentahsin.BenthKese.configuration.*;
-import com.bentahsin.BenthKese.eventbridge.BenthRegistry;
-import com.bentahsin.BenthKese.eventbridge.Subscribe;
 import com.bentahsin.BenthKese.expansion.BenthKeseExpansion;
 import com.bentahsin.BenthKese.gui.listener.MenuListener;
 import com.bentahsin.BenthKese.listeners.PlayerConnectionListener;
@@ -22,10 +20,10 @@ import com.bentahsin.BenthKese.services.storage.database.DatabaseManager;
 import com.bentahsin.BenthKese.services.storage.database.MySQLStorageService;
 import com.bentahsin.BenthKese.services.storage.database.SQLiteStorageService;
 import com.bentahsin.BenthKese.gui.utility.PlayerMenuUtility;
-import com.bentahsin.configuration.Configuration;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.server.ServiceRegisterEvent;
@@ -44,10 +42,8 @@ public class BenthKeseCore {
     private final IScheduler scheduler;
 
     private static Economy econ = null;
-    private BenthRegistry eventRegistry;
     private MessageManager messageManager;
     private EconomyService economyService;
-    private Configuration configLoader;
     private BenthConfig mainConfig;
     private LimitsConfig limitsConfig;
     private LimitManager limitManager;
@@ -70,13 +66,10 @@ public class BenthKeseCore {
             plugin.getLogger().info("Ekonomi sistemine başarıyla bağlanıldı.");
         }
 
-        plugin.saveDefaultConfig();
-        this.eventRegistry = new BenthRegistry(plugin);
-        this.configLoader = new Configuration(plugin);
-        this.mainConfig = new BenthConfig();
-        this.configLoader.init(mainConfig, "config.yml");
-        this.limitsConfig = new LimitsConfig();
-        this.configLoader.init(limitsConfig, "limits.yml");
+        this.mainConfig = new BenthConfig(plugin);
+        this.mainConfig.load();
+        this.limitsConfig = new LimitsConfig(plugin);
+        this.limitsConfig.load();
         this.limitManager = new LimitManager(this.limitsConfig);
 
         this.messageManager = new MessageManager(plugin);
@@ -123,11 +116,11 @@ public class BenthKeseCore {
     }
 
     public void reloadPlugin() {
-        this.configLoader.reload(mainConfig, "config.yml");
-        this.configLoader.reload(limitsConfig, "limits.yml");
+        this.mainConfig.reload();
+        this.limitsConfig.reload();
         this.messageManager.loadMessages();
         this.menuManager.loadMenus();
-        plugin.getLogger().info("Konfigürasyonlar (Annotasyon sistemi ile) yeniden yüklendi.");
+        plugin.getLogger().info("Konfigürasyonlar yeniden yüklendi.");
     }
 
     private boolean setupEconomy() {
@@ -143,10 +136,10 @@ public class BenthKeseCore {
     }
 
     private void setupStorage() {
-        String storageType = Objects.requireNonNull(plugin.getConfig().getString("storage.type", "SQLITE")).toUpperCase();
+        String storageType = mainConfig.storageType.toUpperCase();
 
         if (storageType.equals("MYSQL")) {
-            this.databaseManager = new DatabaseManager(plugin);
+            this.databaseManager = new DatabaseManager(plugin, mainConfig);
             try {
                 databaseManager.connect();
                 this.storageService = new MySQLStorageService(this, this.databaseManager, this.limitManager, scheduler);
@@ -156,7 +149,7 @@ public class BenthKeseCore {
                 this.storageService = new YamlStorageService(plugin, scheduler);
             }
         } else if (storageType.equals("SQLITE")) {
-            this.databaseManager = new DatabaseManager(plugin);
+            this.databaseManager = new DatabaseManager(plugin, mainConfig);
             try {
                 databaseManager.connect();
                 this.storageService = new SQLiteStorageService(this, this.databaseManager, this.limitManager, scheduler);
@@ -208,13 +201,12 @@ public class BenthKeseCore {
     }
 
     private void registerListeners() {
-        this.eventRegistry = new BenthRegistry(plugin);
-        eventRegistry.register(new TransactionBridgeListener(storageService));
-        eventRegistry.register(new PlayerConnectionListener(storageService));
-        eventRegistry.register(new MenuListener());
-        eventRegistry.register(new Listener() {
+        Bukkit.getPluginManager().registerEvents(new TransactionBridgeListener(storageService), plugin);
+        Bukkit.getPluginManager().registerEvents(new PlayerConnectionListener(storageService), plugin);
+        Bukkit.getPluginManager().registerEvents(new MenuListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new Listener() {
 
-            @Subscribe
+            @EventHandler
             public void onServiceRegister(ServiceRegisterEvent event) {
                 if (event.getProvider().getService() == Economy.class && econ == null) {
                     if (setupEconomy()) {
@@ -223,13 +215,13 @@ public class BenthKeseCore {
                 }
             }
 
-            @Subscribe
+            @EventHandler
             public void onMenuClose(InventoryCloseEvent event) {
                 if (event.getInventory().getHolder() instanceof com.bentahsin.BenthKese.gui.Menu) {
                     ((com.bentahsin.BenthKese.gui.Menu) event.getInventory().getHolder()).stopUpdateTask();
                 }
             }
-        });
+        }, plugin);
     }
 
     public PlayerMenuUtility getPlayerMenuUtility(Player p) {

@@ -7,7 +7,7 @@ import com.bentahsin.BenthKese.configuration.MessageManager;
 import com.bentahsin.BenthKese.data.PlayerData;
 import com.bentahsin.BenthKese.data.TransactionData;
 import com.bentahsin.BenthKese.data.TransactionType;
-import com.bentahsin.BenthKese.eventbridge.BenthBus;
+import com.bentahsin.BenthKese.events.TransactionLogEvent;
 import com.bentahsin.BenthKese.services.EconomyService;
 import com.bentahsin.BenthKese.services.storage.IStorageService;
 import org.bukkit.command.CommandSender;
@@ -103,7 +103,7 @@ public class KeseAlCommand implements ISubCommand {
                     System.currentTimeMillis()
             );
 
-            BenthBus.publish(core.getPlugin(), "transaction-log", transaction);
+            org.bukkit.Bukkit.getPluginManager().callEvent(new TransactionLogEvent(transaction));
 
             if (withdrawnAmount < requestedAmount) {
                 player.sendMessage(messageManager.getMessage("withdraw.partial-success")
